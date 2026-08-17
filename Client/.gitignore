@@ -1,0 +1,68 @@
+# =========================
+# VARIABLES DE ENTORNO
+# =========================
+
+.env
+.env.*
+!.env.example
+
+
+# =========================
+# DEPENDENCIAS
+# =========================
+
+node_modules
+**/node_modules/
+
+
+# =========================
+# BUILD
+# =========================
+
+dist
+dist-ssr
+**/dist/
+
+
+# =========================
+# LOGS
+# =========================
+
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+
+# =========================
+# ARCHIVOS LOCALES
+# =========================
+
+*.local
+
+
+# =========================
+# EDITORES
+# =========================
+
+.vscode/*
+!.vscode/extensions.json
+
+.idea
+
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+
+# =========================
+# SISTEMA OPERATIVO
+# =========================
+
+.DS_Store
+Thumbs.db

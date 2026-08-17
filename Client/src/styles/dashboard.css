@@ -1,0 +1,421 @@
+.dashboard {
+  width: 100%;
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  padding: 40px 20px;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 30px;
+}
+
+.dashboard-label {
+  margin: 0 0 5px;
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+
+  color: #6b7280;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+
+  font-size: 32px;
+}
+
+
+/* =========================
+   USUARIO
+========================= */
+
+.usuario-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.usuario-nombre {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 12px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: white;
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.usuario-nombre::before {
+  content: "";
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+
+  box-shadow:
+    0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+
+/* =========================
+   CAMBIAR CONTRASEÑA
+========================= */
+
+.boton-cuenta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-decoration: none;
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
+}
+
+.boton-cuenta:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.boton-cuenta:active {
+  transform: scale(0.98);
+}
+
+
+/* =========================
+   CERRAR SESIÓN
+========================= */
+
+.boton-cerrar-sesion {
+  padding: 9px 13px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #6b7280;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.boton-cerrar-sesion:hover {
+  background: #fff;
+
+  color: #b91c1c;
+  border-color: #fecaca;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================
+   PERÍODO
+========================= */
+
+.periodo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 25px;
+
+  margin-bottom: 30px;
+}
+
+.periodo h2 {
+  width: 220px;
+
+  margin: 0;
+
+  text-align: center;
+
+  font-size: 20px;
+}
+
+.boton-periodo {
+  width: 42px;
+  height: 42px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: white;
+
+  font-size: 28px;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.boton-periodo:hover {
+  background: #e5e7eb;
+}
+
+
+/* =========================
+   TOTAL
+========================= */
+
+.total-card {
+  display: flex;
+  flex-direction: column;
+
+  padding: 30px;
+  margin-bottom: 30px;
+
+  border-radius: 18px;
+
+  background: #111827;
+  color: white;
+
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.total-card span {
+  margin-bottom: 8px;
+
+  font-size: 14px;
+
+  color: #9ca3af;
+}
+
+.total-card strong {
+  font-size: 40px;
+}
+
+
+/* =========================
+   RESUMEN
+========================= */
+
+.resumen {
+  padding: 25px;
+
+  border-radius: 18px;
+
+  background: white;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.resumen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 20px;
+}
+
+.resumen-header h3 {
+  margin: 0;
+
+  font-size: 20px;
+}
+
+.boton-agregar {
+  padding: 10px 16px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #111827;
+  color: white;
+
+  cursor: pointer;
+}
+
+.boton-agregar:hover {
+  background: #374151;
+}
+
+
+/* =========================
+   ORÍGENES
+========================= */
+
+.origenes {
+  display: flex;
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+.origen-card {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 18px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+
+  background: white;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.origen-card:hover {
+  background: #f9fafb;
+
+  transform: translateY(-1px);
+}
+
+.origen-card > div:first-child {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.origen-nombre {
+  font-weight: 600;
+}
+
+.origen-card small {
+  color: #9ca3af;
+}
+
+.origen-total {
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+}
+
+.origen-total strong {
+  font-size: 17px;
+}
+
+.origen-total span {
+  color: #9ca3af;
+
+  font-size: 25px;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 25px 15px;
+  }
+
+  .dashboard-header {
+    align-items: flex-start;
+
+    gap: 20px;
+  }
+
+  .usuario-header {
+    flex-direction: column;
+    align-items: flex-end;
+
+    gap: 7px;
+  }
+
+  .usuario-nombre {
+    padding: 7px 10px;
+
+    font-size: 12px;
+  }
+
+  .boton-cerrar-sesion {
+    padding: 7px 10px;
+
+    font-size: 12px;
+  }
+
+  .boton-cuenta {
+    padding: 7px 10px;
+
+    font-size: 12px;
+  }
+
+  .total-card strong {
+    font-size: 32px;
+  }
+
+  .origen-card {
+    padding: 15px;
+  }
+
+  .origen-total strong {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-header {
+    flex-direction: column;
+  }
+
+  .usuario-header {
+    width: 100%;
+
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    flex-wrap: wrap;
+  }
+}

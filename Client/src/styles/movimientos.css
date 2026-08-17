@@ -1,0 +1,259 @@
+.movimientos-page {
+  width: 100%;
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 40px 20px;
+}
+
+.boton-volver {
+  padding: 0;
+
+  margin-bottom: 25px;
+
+  border: none;
+
+  background: transparent;
+  color: #6b7280;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.boton-volver:hover {
+  color: #111827;
+}
+
+.movimientos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+
+  margin-bottom: 30px;
+}
+
+.movimientos-header h1 {
+  margin: 5px 0;
+}
+
+.movimientos-periodo {
+  color: #6b7280;
+}
+
+.movimientos-total {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.movimientos-total span {
+  color: #6b7280;
+
+  font-size: 13px;
+}
+
+.movimientos-total strong {
+  margin-top: 4px;
+
+  font-size: 28px;
+}
+
+
+/* =========================
+   GRILLA
+========================= */
+
+.grilla-container {
+  padding: 25px;
+
+  border-radius: 18px;
+
+  background: white;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.05);
+}
+
+.grilla-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 20px;
+}
+
+.grilla-header h2 {
+  margin: 0;
+}
+
+.acciones-header {
+  display: flex;
+
+  gap: 10px;
+}
+
+.tabla-wrapper {
+  overflow-x: auto;
+}
+
+
+/* =========================
+   TABLA
+========================= */
+
+.tabla-gastos {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.tabla-gastos th {
+  padding: 12px 10px;
+
+  border-bottom: 1px solid #e5e7eb;
+
+  color: #6b7280;
+
+  text-align: left;
+
+  font-size: 12px;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.5px;
+}
+
+.tabla-gastos td {
+  padding: 8px 6px;
+
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.tabla-gastos input,
+.tabla-gastos select {
+  width: 100%;
+
+  padding: 10px;
+
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  background: transparent;
+
+  font-size: 14px;
+
+  outline: none;
+}
+
+.tabla-gastos select {
+  cursor: pointer;
+}
+
+.tabla-gastos input:hover,
+.tabla-gastos select:hover {
+  border-color: #e5e7eb;
+}
+
+.tabla-gastos input:focus,
+.tabla-gastos select:focus {
+  border-color: #111827;
+
+  background: white;
+}
+
+.fila-modificada {
+  background: #fafafa;
+}
+
+
+/* =========================
+   CUOTAS
+========================= */
+
+.campo-cuotas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  min-width: 110px;
+}
+
+.campo-cuotas input {
+  width: 45px;
+
+  padding: 8px 4px;
+
+  text-align: center;
+}
+
+.campo-cuotas span {
+  color: #6b7280;
+
+  font-weight: 600;
+}
+
+
+/* =========================
+   ACCIONES
+========================= */
+
+.boton-eliminar {
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #9ca3af;
+
+  font-size: 22px;
+
+  cursor: pointer;
+}
+
+.boton-eliminar:hover {
+  background: #fee2e2;
+
+  color: #b91c1c;
+}
+
+.acciones-grilla {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 25px;
+}
+
+.sin-movimientos {
+  padding: 50px 20px;
+
+  text-align: center;
+
+  color: #6b7280;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 700px) {
+  .movimientos-header {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 20px;
+  }
+
+  .movimientos-total {
+    align-items: flex-start;
+  }
+}

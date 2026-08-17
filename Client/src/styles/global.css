@@ -1,0 +1,138 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+button {
+  font: inherit;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(17, 24, 39, 0.15);
+  outline-offset: 2px;
+}
+
+
+/* =========================
+   CAMPOS GENERALES
+========================= */
+
+.campo-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.campo-input {
+  width: 100%;
+
+  padding: 13px 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+
+  background: white;
+  color: #111827;
+
+  font-family: inherit;
+  font-size: 15px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.campo-input::placeholder {
+  color: #9ca3af;
+}
+
+.campo-input:hover {
+  border-color: #9ca3af;
+}
+
+.campo-input:focus {
+  border-color: #111827;
+
+  box-shadow:
+    0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+
+/* =========================
+   MENSAJES
+========================= */
+
+.mensaje {
+  text-align: center;
+  padding: 30px;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.mensaje-exito {
+  margin: 15px 0 0;
+
+  color: #15803d;
+
+  font-size: 14px;
+}
+
+.sin-datos {
+  color: #6b7280;
+  text-align: center;
+  padding: 20px;
+}
+
+
+/* =========================
+   BOTONES COMPARTIDOS
+========================= */
+
+.boton-secundario {
+  border: 1px solid #d1d5db;
+  border-radius: 9px;
+
+  padding: 10px 16px;
+
+  background: white;
+  color: #111827;
+
+  cursor: pointer;
+}
+
+.boton-secundario:hover {
+  background: #f3f4f6;
+}
