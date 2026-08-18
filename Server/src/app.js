@@ -88,12 +88,45 @@ app.get("/", (req, res) => {
 // ==============================
 // INICIAR SERVIDOR
 // ==============================
-
 const iniciarServidor = async () => {
+  console.log(
+    "DATABASE_URL cargada:",
+    Boolean(process.env.DATABASE_URL)
+  );
+
+  console.log(
+    "NODE_ENV:",
+    process.env.NODE_ENV
+  );
+
+  if (process.env.DATABASE_URL) {
+    try {
+      const databaseUrl =
+        new URL(
+          process.env.DATABASE_URL
+        );
+
+      console.log(
+        "DB host:",
+        databaseUrl.hostname
+      );
+
+      console.log(
+        "DB database:",
+        databaseUrl.pathname.slice(1)
+      );
+    } catch {
+      console.error(
+        "❌ DATABASE_URL tiene un formato inválido"
+      );
+    }
+  }
+
   try {
-    const result = await pool.query(
-      "SELECT current_database()"
-    );
+    const result =
+      await pool.query(
+        "SELECT current_database()"
+      );
 
     console.log(
       `✅ PostgreSQL conectado a: ${result.rows[0].current_database}`
@@ -101,15 +134,29 @@ const iniciarServidor = async () => {
 
     app.listen(PORT, () => {
       console.log(
-        `🚀 Servidor funcionando en http://localhost:${PORT}`
+        `🚀 Servidor funcionando en puerto ${PORT}`
       );
     });
+
   } catch (error) {
     console.error(
       "❌ Error al conectar con PostgreSQL:"
     );
 
-    console.error(error.message);
+    console.error(
+      "Nombre:",
+      error.name
+    );
+
+    console.error(
+      "Código:",
+      error.code
+    );
+
+    console.error(
+      "Mensaje:",
+      error.message
+    );
 
     process.exit(1);
   }
