@@ -24,6 +24,8 @@ import {
 // REGISTRAR USUARIO
 // ===================================
 
+const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const registrarUsuario = async (
   nombre,
   email,
@@ -54,6 +56,22 @@ export const registrarUsuario = async (
   const emailNormalizado = email
     .trim()
     .toLowerCase();
+
+  if (
+    nombreNormalizado.length > 100 ||
+    emailNormalizado.length > 255 ||
+    password.length > 200
+  ) {
+    throw new Error(
+      "Alguno de los datos supera el largo permitido"
+    );
+  }
+
+  if (!EMAIL_VALIDO.test(emailNormalizado)) {
+    throw new Error(
+      "El email no tiene un formato válido"
+    );
+  }
 
   const usuarioExistente =
     await buscarUsuarioPorEmail(
@@ -253,8 +271,11 @@ export const solicitarRecuperacionPassword =
       typeof email !== "string" ||
       !email.trim()
     ) {
-      throw new Error(
-        "El email es obligatorio"
+      throw Object.assign(
+        new Error(
+          "El email es obligatorio"
+        ),
+        { status: 400 }
       );
     }
 

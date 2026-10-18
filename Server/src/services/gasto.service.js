@@ -52,6 +52,12 @@ const normalizarGasto = (gasto, requiereId = false) => {
     throw new Error("La descripción es obligatoria");
   }
 
+  if (descripcion.length > 255) {
+    throw new Error(
+      "La descripción no puede superar los 255 caracteres"
+    );
+  }
+
   const monto = Number(gasto.monto);
 
   if (!Number.isFinite(monto) || monto <= 0) {
@@ -110,6 +116,17 @@ if (tieneCuotaActual || tieneCuotasTotales) {
     }
   }
 
+const observaciones =
+    typeof gasto.observaciones === "string"
+      ? gasto.observaciones.trim()
+      : "";
+
+  if (observaciones.length > 1000) {
+    throw new Error(
+      "Las observaciones no pueden superar los 1000 caracteres"
+    );
+  }
+
 return {
     ...(requiereId && { id }),
 
@@ -121,8 +138,7 @@ return {
     cuotaActual,
     cuotasTotales,
 
-    observaciones:
-      gasto.observaciones?.trim() || null,
+    observaciones: observaciones || null,
   };
 };
 

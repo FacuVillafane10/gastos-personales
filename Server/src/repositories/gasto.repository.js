@@ -61,6 +61,46 @@ export const guardarCambiosGastos = async (
   try {
     await client.query("BEGIN");
 
+    // El origen debe pertenecer al usuario
+    const origen = await client.query(
+      `
+        SELECT 1
+        FROM origenes_gasto
+        WHERE id = $1
+          AND usuario_id = $2
+      `,
+      [origenId, usuarioId]
+    );
+
+    if (origen.rowCount === 0) {
+      throw new Error("Origen no encontrado");
+    }
+
+    // Las categorías deben pertenecer al usuario
+    const categoriaIds = [
+      ...new Set(
+        [...crear, ...actualizar]
+          .map((gasto) => gasto.categoriaId)
+          .filter(Boolean)
+      ),
+    ];
+
+    if (categoriaIds.length > 0) {
+      const categorias = await client.query(
+        `
+          SELECT id
+          FROM categorias
+          WHERE usuario_id = $1
+            AND id = ANY($2::INTEGER[])
+        `,
+        [usuarioId, categoriaIds]
+      );
+
+      if (categorias.rowCount !== categoriaIds.length) {
+        throw new Error("La categoría es inválida");
+      }
+    }
+
     const creados = [];
     const actualizados = [];
 

@@ -1,4 +1,8 @@
 import pool from "../database/db.js";
+import {
+  crearOReactivar,
+  validarNombreLibre,
+} from "./catalogo.helper.js";
 
 export const obtenerOrigenes = async (
   usuarioId
@@ -49,29 +53,11 @@ export const crearOrigen = async (
   usuarioId,
   nombre
 ) => {
-  const { rows } = await pool.query(
-    `
-      INSERT INTO origenes_gasto (
-        usuario_id,
-        nombre
-      )
-      VALUES (
-        $1,
-        $2
-      )
-      RETURNING
-        id,
-        nombre,
-        activo,
-        creado_en
-    `,
-    [
-      usuarioId,
-      nombre,
-    ]
+  return await crearOReactivar(
+    "origenes_gasto",
+    usuarioId,
+    nombre
   );
-
-  return rows[0];
 };
 
 export const actualizarOrigen = async (
@@ -79,6 +65,13 @@ export const actualizarOrigen = async (
   id,
   nombre
 ) => {
+  await validarNombreLibre(
+    "origenes_gasto",
+    usuarioId,
+    id,
+    nombre
+  );
+
   const { rows } = await pool.query(
     `
       UPDATE origenes_gasto

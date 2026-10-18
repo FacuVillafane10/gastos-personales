@@ -40,6 +40,12 @@ export const agregarOrigen = async (
     throw new Error("El nombre es obligatorio");
   }
 
+  if (nombreLimpio.length > 100) {
+    throw new Error(
+      "El nombre no puede superar los 100 caracteres"
+    );
+  }
+
   return await crearOrigen(
     usuarioId,
     nombreLimpio
@@ -55,6 +61,12 @@ export const editarOrigen = async (
 
   if (!nombreLimpio) {
     throw new Error("El nombre es obligatorio");
+  }
+
+  if (nombreLimpio.length > 100) {
+    throw new Error(
+      "El nombre no puede superar los 100 caracteres"
+    );
   }
 
   const origen = await actualizarOrigen(

@@ -14,6 +14,11 @@ import {
   requerirAutenticacion,
 } from "../middlewares/auth.middleware.js";
 
+import {
+  limitarLogin,
+  limitarRecuperacion,
+} from "../middlewares/limitador.middleware.js";
+
 const router = Router();
 
 
@@ -28,11 +33,13 @@ router.post(
 
 router.post(
   "/login",
+  limitarLogin,
   login
 );
 
 router.post(
   "/forgot-password",
+  limitarRecuperacion,
   forgotPassword
 );
 

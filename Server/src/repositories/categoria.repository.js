@@ -1,4 +1,8 @@
 import pool from "../database/db.js";
+import {
+  crearOReactivar,
+  validarNombreLibre,
+} from "./catalogo.helper.js";
 
 export const obtenerCategorias = async (
   usuarioId
@@ -49,29 +53,11 @@ export const crearCategoria = async (
   usuarioId,
   nombre
 ) => {
-  const { rows } = await pool.query(
-    `
-      INSERT INTO categorias (
-        usuario_id,
-        nombre
-      )
-      VALUES (
-        $1,
-        $2
-      )
-      RETURNING
-        id,
-        nombre,
-        activo,
-        creado_en
-    `,
-    [
-      usuarioId,
-      nombre,
-    ]
+  return await crearOReactivar(
+    "categorias",
+    usuarioId,
+    nombre
   );
-
-  return rows[0];
 };
 
 export const actualizarCategoria = async (
@@ -79,6 +65,13 @@ export const actualizarCategoria = async (
   id,
   nombre
 ) => {
+  await validarNombreLibre(
+    "categorias",
+    usuarioId,
+    id,
+    nombre
+  );
+
   const { rows } = await pool.query(
     `
       UPDATE categorias

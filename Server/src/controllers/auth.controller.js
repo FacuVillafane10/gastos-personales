@@ -292,6 +292,12 @@ export const forgotPassword = async (
 
     console.error(error);
 
+    if (error.status === 400) {
+      return res.status(400).json({
+        error: error.message,
+      });
+    }
+
     res.status(500).json({
       error:
         "No se pudo procesar la solicitud",

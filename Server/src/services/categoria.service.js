@@ -46,6 +46,12 @@ export const agregarCategoria = async (
     );
   }
 
+  if (nombreLimpio.length > 100) {
+    throw new Error(
+      "El nombre no puede superar los 100 caracteres"
+    );
+  }
+
   return await crearCategoria(
     usuarioId,
     nombreLimpio
@@ -63,6 +69,12 @@ export const editarCategoria = async (
   if (!nombreLimpio) {
     throw new Error(
       "El nombre es obligatorio"
+    );
+  }
+
+  if (nombreLimpio.length > 100) {
+    throw new Error(
+      "El nombre no puede superar los 100 caracteres"
     );
   }
 

@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import "dotenv/config";
 
@@ -23,6 +24,8 @@ const PORT = process.env.PORT || 3000;
 // ==============================
 // MIDDLEWARES GENERALES
 // ==============================
+
+app.use(helmet());
 
 app.use(
   cors({
