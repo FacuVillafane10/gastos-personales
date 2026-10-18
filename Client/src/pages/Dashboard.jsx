@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Link,
   useNavigate,
+  useSearchParams,
 } from "react-router";
 
 import {
@@ -48,13 +49,45 @@ const Dashboard = () => {
   const fechaActual = new Date();
   const navigate = useNavigate();
   const [usuario, setUsuario] = useState(null);
-  const [anio, setAnio] = useState(
-    fechaActual.getFullYear()
+
+  // El mes que se está viendo vive en la dirección (?anio=&mes=),
+  // así se conserva al volver desde un origen o al recargar.
+  const [searchParams, setSearchParams] =
+    useSearchParams();
+
+  const anioUrl = Number(
+    searchParams.get("anio")
   );
 
-  const [mes, setMes] = useState(
-    fechaActual.getMonth() + 1
+  const mesUrl = Number(
+    searchParams.get("mes")
   );
+
+  const anio =
+    Number.isInteger(anioUrl) &&
+    anioUrl >= 2000 &&
+    anioUrl <= 2100
+      ? anioUrl
+      : fechaActual.getFullYear();
+
+  const mes =
+    Number.isInteger(mesUrl) &&
+    mesUrl >= 1 &&
+    mesUrl <= 12
+      ? mesUrl
+      : fechaActual.getMonth() + 1;
+
+  const irAMes = (nuevoAnio, nuevoMes) => {
+    setAvisoCopia("");
+
+    setSearchParams(
+      {
+        anio: String(nuevoAnio),
+        mes: String(nuevoMes),
+      },
+      { replace: true }
+    );
+  };
 
   const [resumen, setResumen] = useState(null);
 
@@ -390,34 +423,22 @@ const handleCerrarSesion = async () => {
 
   const mesAnterior = () => {
     if (mes === 1) {
-      setMes(12);
-
-      setAnio(
-        (anioActual) => anioActual - 1
-      );
+      irAMes(anio - 1, 12);
 
       return;
     }
 
-    setMes(
-      (mesActual) => mesActual - 1
-    );
+    irAMes(anio, mes - 1);
   };
 
   const mesSiguiente = () => {
     if (mes === 12) {
-      setMes(1);
-
-      setAnio(
-        (anioActual) => anioActual + 1
-      );
+      irAMes(anio + 1, 1);
 
       return;
     }
 
-    setMes(
-      (mesActual) => mesActual + 1
-    );
+    irAMes(anio, mes + 1);
   };
 
   // =========================
