@@ -15,16 +15,16 @@
   border: none;
 
   background: transparent;
-  color: #6b7280;
+  color: var(--texto-suave);
 
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
 }
 
 .boton-volver:hover {
-  color: #111827;
+  color: var(--verde);
 }
 
 .movimientos-header {
@@ -40,7 +40,7 @@
 }
 
 .movimientos-periodo {
-  color: #6b7280;
+  color: var(--texto-suave);
 }
 
 .movimientos-total {
@@ -50,15 +50,25 @@
 }
 
 .movimientos-total span {
-  color: #6b7280;
+  color: var(--texto-suave);
 
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .movimientos-total strong {
   margin-top: 4px;
 
+  font-family: var(--fuente-mono);
   font-size: 28px;
+  letter-spacing: -0.03em;
+
+  background: var(--degradado);
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 
@@ -69,12 +79,13 @@
 .grilla-container {
   padding: 25px;
 
+  border: 1px solid var(--borde);
   border-radius: 18px;
 
-  background: white;
+  background: var(--superficie);
 
   box-shadow:
-    0 5px 20px rgba(0, 0, 0, 0.05);
+    0 20px 50px rgba(0, 0, 0, 0.35);
 }
 
 .grilla-header {
@@ -87,6 +98,8 @@
 
 .grilla-header h2 {
   margin: 0;
+
+  font-size: 18px;
 }
 
 .acciones-header {
@@ -113,23 +126,28 @@
 .tabla-gastos th {
   padding: 12px 10px;
 
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--borde-fuerte);
 
-  color: #6b7280;
+  color: var(--texto-tenue);
 
   text-align: left;
 
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 700;
 
   text-transform: uppercase;
 
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1em;
 }
 
 .tabla-gastos td {
   padding: 8px 6px;
 
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--borde);
+}
+
+.tabla-gastos tbody tr:hover {
+  background: rgba(61, 165, 255, 0.04);
 }
 
 .tabla-gastos input,
@@ -139,33 +157,51 @@
   padding: 10px;
 
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: 8px;
 
   background: transparent;
+  color: var(--texto);
 
+  font-family: inherit;
   font-size: 14px;
 
   outline: none;
+}
+
+.tabla-gastos input[type="number"] {
+  font-family: var(--fuente-mono);
 }
 
 .tabla-gastos select {
   cursor: pointer;
 }
 
+.tabla-gastos select option {
+  background: var(--superficie-2);
+  color: var(--texto);
+}
+
 .tabla-gastos input:hover,
 .tabla-gastos select:hover {
-  border-color: #e5e7eb;
+  border-color: var(--borde-fuerte);
 }
 
 .tabla-gastos input:focus,
 .tabla-gastos select:focus {
-  border-color: #111827;
+  border-color: var(--azul);
 
-  background: white;
+  background: var(--bg-elevado);
+
+  box-shadow:
+    0 0 0 3px rgba(61, 165, 255, 0.15);
+}
+
+.tabla-gastos input::placeholder {
+  color: var(--texto-tenue);
 }
 
 .fila-modificada {
-  background: #fafafa;
+  background: rgba(34, 229, 143, 0.05);
 }
 
 
@@ -192,7 +228,7 @@
 }
 
 .campo-cuotas span {
-  color: #6b7280;
+  color: var(--texto-tenue);
 
   font-weight: 600;
 }
@@ -210,7 +246,7 @@
   border-radius: 8px;
 
   background: transparent;
-  color: #9ca3af;
+  color: var(--texto-tenue);
 
   font-size: 22px;
 
@@ -218,9 +254,9 @@
 }
 
 .boton-eliminar:hover {
-  background: #fee2e2;
+  background: var(--peligro-fondo);
 
-  color: #b91c1c;
+  color: var(--peligro);
 }
 
 .acciones-grilla {
@@ -237,7 +273,7 @@
 
   text-align: center;
 
-  color: #6b7280;
+  color: var(--texto-tenue);
 }
 
 
@@ -255,5 +291,9 @@
 
   .movimientos-total {
     align-items: flex-start;
+  }
+
+  .grilla-container {
+    padding: 18px;
   }
 }

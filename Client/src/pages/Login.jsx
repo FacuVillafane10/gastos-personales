@@ -126,25 +126,29 @@ const Login = () => {
             </p>
           )}
 
+          <div className="login-recuperar">
+            <Link to="/olvide-password">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
           <button
             type="submit"
             className="boton-guardar login-boton"
             disabled={cargando}
           >
-            <div className="login-recuperar">
-            <Link to="/olvide-password">
-                ¿Olvidaste tu contraseña?
-            </Link>
-            </div>
             {cargando
               ? "Ingresando..."
               : "Ingresar"}
           </button>
 
-          
-<Link to="/registro">
-  Crear una cuenta
-</Link>              
+          <p className="login-registro">
+            ¿No tenés cuenta?{" "}
+            <Link to="/registro">
+              Crear una cuenta
+            </Link>
+          </p>
+
         </form>
 
       </section>

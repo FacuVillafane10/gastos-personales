@@ -1,20 +1,140 @@
+/* =========================
+   TOKENS DE DISEÑO
+========================= */
+
+:root {
+  color-scheme: dark;
+
+  --bg: #05080c;
+  --bg-elevado: #0a1017;
+  --superficie: #0d151d;
+  --superficie-2: #121c27;
+  --borde: #1b2836;
+  --borde-fuerte: #2a3b4d;
+
+  --texto: #e8eef5;
+  --texto-suave: #9aa9b9;
+  --texto-tenue: #66768a;
+
+  --verde: #22e58f;
+  --verde-oscuro: #12b571;
+  --azul: #3da5ff;
+  --azul-oscuro: #2b7de0;
+
+  --peligro: #ff6b7a;
+  --peligro-fondo: rgba(255, 107, 122, 0.1);
+  --exito-fondo: rgba(34, 229, 143, 0.1);
+
+  --degradado: linear-gradient(
+    135deg,
+    var(--verde) 0%,
+    var(--azul) 100%
+  );
+
+  --radio: 14px;
+  --radio-chico: 10px;
+
+  --fuente:
+    Inter, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --fuente-mono:
+    "JetBrains Mono", "SF Mono", ui-monospace,
+    Consolas, monospace;
+}
+
 * {
   box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
 }
 
 body {
   margin: 0;
 
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
 
-  background: #f4f6f8;
-  color: #1f2937;
+  font-family: var(--fuente);
+
+  background: var(--bg);
+  color: var(--texto);
+
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Fondo fijo: iOS Safari ignora background-attachment: fixed,
+   por eso va en una capa propia con position: fixed. */
+body::before {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      900px 500px at 8% -10%,
+      rgba(34, 229, 143, 0.1),
+      transparent 60%
+    ),
+    radial-gradient(
+      800px 500px at 100% 0%,
+      rgba(61, 165, 255, 0.1),
+      transparent 60%
+    ),
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    var(--bg);
+
+  background-size:
+    auto,
+    auto,
+    44px 44px,
+    44px 44px,
+    auto;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--azul);
+}
+
+::selection {
+  background: rgba(61, 165, 255, 0.35);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid var(--bg);
+  border-radius: 10px;
+
+  background: var(--borde-fuerte);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 button {
@@ -25,13 +145,15 @@ button {
     color 0.2s ease,
     border-color 0.2s ease,
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
 }
 
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
-  outline: 3px solid rgba(17, 24, 39, 0.15);
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--azul);
   outline-offset: 2px;
 }
 
@@ -43,12 +165,14 @@ select:focus-visible {
 .campo-label {
   display: block;
 
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 
-  color: #374151;
+  color: var(--texto-suave);
 
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .campo-input {
@@ -56,11 +180,11 @@ select:focus-visible {
 
   padding: 13px 14px;
 
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
 
-  background: white;
-  color: #111827;
+  background: var(--bg-elevado);
+  color: var(--texto);
 
   font-family: inherit;
   font-size: 15px;
@@ -74,18 +198,20 @@ select:focus-visible {
 }
 
 .campo-input::placeholder {
-  color: #9ca3af;
+  color: var(--texto-tenue);
 }
 
 .campo-input:hover {
-  border-color: #9ca3af;
+  border-color: var(--borde-fuerte);
 }
 
 .campo-input:focus {
-  border-color: #111827;
+  border-color: var(--azul);
+
+  background: var(--superficie);
 
   box-shadow:
-    0 0 0 3px rgba(17, 24, 39, 0.08);
+    0 0 0 3px rgba(61, 165, 255, 0.18);
 }
 
 
@@ -94,26 +220,31 @@ select:focus-visible {
 ========================= */
 
 .mensaje {
-  text-align: center;
   padding: 30px;
+
+  text-align: center;
+
+  color: var(--texto-suave);
 }
 
 .error {
-  color: #b91c1c;
+  color: var(--peligro);
 }
 
 .mensaje-exito {
   margin: 15px 0 0;
 
-  color: #15803d;
+  color: var(--verde);
 
   font-size: 14px;
 }
 
 .sin-datos {
-  color: #6b7280;
-  text-align: center;
   padding: 20px;
+
+  text-align: center;
+
+  color: var(--texto-tenue);
 }
 
 
@@ -121,18 +252,226 @@ select:focus-visible {
    BOTONES COMPARTIDOS
 ========================= */
 
-.boton-secundario {
-  border: 1px solid #d1d5db;
-  border-radius: 9px;
+.boton-guardar,
+.boton-agregar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 
+  padding: 10px 18px;
+
+  border: none;
+  border-radius: var(--radio-chico);
+
+  background: var(--degradado);
+  color: #04110b;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 20px rgba(34, 229, 143, 0.18);
+}
+
+.boton-guardar:hover:not(:disabled),
+.boton-agregar:hover:not(:disabled) {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 28px rgba(34, 229, 143, 0.28),
+    0 0 0 1px rgba(61, 165, 255, 0.35);
+}
+
+.boton-guardar:active:not(:disabled),
+.boton-agregar:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.boton-guardar:disabled,
+.boton-agregar:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+
+  box-shadow: none;
+}
+
+.boton-secundario,
+.boton-cancelar {
   padding: 10px 16px;
 
-  background: white;
-  color: #111827;
+  border: 1px solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+
+  background: transparent;
+  color: var(--texto);
+
+  font-size: 14px;
+  font-weight: 600;
 
   cursor: pointer;
 }
 
-.boton-secundario:hover {
-  background: #f3f4f6;
+.boton-secundario:hover:not(:disabled),
+.boton-cancelar:hover:not(:disabled) {
+  border-color: var(--azul);
+
+  background: rgba(61, 165, 255, 0.08);
+}
+
+.boton-secundario:disabled,
+.boton-cancelar:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(2, 5, 8, 0.72);
+
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+
+  animation: aparecer 0.15s ease;
+}
+
+.modal {
+  width: 100%;
+  max-width: 440px;
+
+  padding: 28px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--superficie-2),
+      var(--superficie)
+    );
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(61, 165, 255, 0.06);
+
+  animation: subir 0.2s ease;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+
+  margin-bottom: 22px;
+}
+
+.modal-header h2 {
+  margin: 6px 0 0;
+
+  font-size: 20px;
+}
+
+.modal-label {
+  color: var(--verde);
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.modal-cerrar {
+  width: 34px;
+  height: 34px;
+
+  border: 1px solid var(--borde);
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--texto-suave);
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.modal-cerrar:hover {
+  border-color: var(--borde-fuerte);
+
+  color: var(--texto);
+}
+
+.modal-error {
+  margin: 12px 0 0;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(255, 107, 122, 0.3);
+  border-radius: 9px;
+
+  background: var(--peligro-fondo);
+  color: var(--peligro);
+
+  font-size: 13px;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* iOS hace zoom al enfocar campos con fuente menor a 16px */
+@media (max-width: 700px) {
+  .campo-input,
+  .tabla-gastos input,
+  .tabla-gastos select {
+    font-size: 16px;
+  }
 }

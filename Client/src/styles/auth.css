@@ -1,35 +1,56 @@
 .login-page {
   min-height: 100vh;
+  min-height: 100dvh;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   padding: 30px 20px;
-
-  background:
-    radial-gradient(
-      circle at top left,
-      rgba(17, 24, 39, 0.05),
-      transparent 35%
-    ),
-    #f4f6f8;
 }
 
 .login-card {
+  position: relative;
+
   width: 100%;
   max-width: 430px;
 
-  padding: 38px;
+  padding: 40px;
 
-  border: 1px solid rgba(229, 231, 235, 0.9);
+  border: 1px solid var(--borde);
   border-radius: 22px;
 
-  background: rgba(255, 255, 255, 0.96);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(18, 28, 39, 0.92),
+      rgba(10, 16, 23, 0.92)
+    );
+
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
 
   box-shadow:
-    0 25px 60px rgba(17, 24, 39, 0.08),
-    0 5px 15px rgba(17, 24, 39, 0.04);
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 60px rgba(34, 229, 143, 0.05);
+}
+
+/* línea de acento superior */
+.login-card::before {
+  content: "";
+
+  position: absolute;
+  top: -1px;
+  left: 28px;
+  right: 28px;
+  height: 2px;
+
+  border-radius: 2px;
+
+  background: var(--degradado);
+
+  box-shadow:
+    0 0 18px rgba(34, 229, 143, 0.6);
 }
 
 .login-header {
@@ -37,21 +58,21 @@
 }
 
 .login-header h1 {
-  margin: 5px 0 8px;
+  margin: 8px 0 10px;
 
   font-size: 30px;
   line-height: 1.15;
 
-  color: #111827;
+  color: var(--texto);
 }
 
 .login-header > p:last-child {
   margin: 0;
 
-  color: #6b7280;
+  color: var(--texto-suave);
 
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .login-form {
@@ -76,39 +97,14 @@
 
   margin-top: 4px;
 
-  padding: 13px 18px;
-
-  border-radius: 10px;
+  padding: 14px 18px;
 
   font-size: 15px;
-  font-weight: 600;
-
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.login-boton:hover:not(:disabled) {
-  transform: translateY(-1px);
-
-  box-shadow:
-    0 8px 18px rgba(17, 24, 39, 0.14);
-}
-
-.login-boton:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.login-boton:disabled {
-  opacity: 0.6;
-
-  cursor: not-allowed;
 }
 
 
 /* =========================
-   ERROR
+   MENSAJES
 ========================= */
 
 .login-form .mensaje.error {
@@ -116,29 +112,89 @@
 
   padding: 11px 13px;
 
-  border: 1px solid #fecaca;
+  border: 1px solid rgba(255, 107, 122, 0.3);
   border-radius: 9px;
 
-  background: #fef2f2;
+  background: var(--peligro-fondo);
 
-  color: #b91c1c;
+  color: var(--peligro);
 
   text-align: left;
 
   font-size: 13px;
 }
 
+.mensaje-recuperacion-exito {
+  margin: -5px 0 0;
+
+  padding: 12px 13px;
+
+  border: 1px solid rgba(34, 229, 143, 0.3);
+  border-radius: 9px;
+
+  background: var(--exito-fondo);
+
+  color: var(--verde);
+
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 
 /* =========================
-   VOLVER
+   ENLACES
 ========================= */
+
+.login-recuperar {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: -8px;
+}
+
+.login-recuperar a {
+  color: var(--texto-suave);
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.login-recuperar a:hover {
+  color: var(--azul);
+
+  text-decoration: underline;
+}
+
+.login-registro {
+  margin: 0;
+
+  text-align: center;
+
+  color: var(--texto-suave);
+
+  font-size: 14px;
+}
+
+.login-registro a {
+  color: var(--verde);
+
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.login-registro a:hover {
+  text-decoration: underline;
+}
 
 .volver-inicio {
   display: block;
 
   margin-top: 5px;
 
-  color: #6b7280;
+  color: var(--texto-suave);
 
   text-align: center;
 
@@ -149,7 +205,7 @@
 }
 
 .volver-inicio:hover {
-  color: #111827;
+  color: var(--azul);
 }
 
 
@@ -163,7 +219,7 @@
   }
 
   .login-card {
-    padding: 28px 22px;
+    padding: 30px 22px;
 
     border-radius: 18px;
   }
@@ -175,49 +231,6 @@
 
 @media (max-width: 430px) {
   .login-card {
-    padding: 25px 18px;
+    padding: 26px 18px;
   }
-}
-
-.login-recuperar {
-  display: flex;
-  justify-content: flex-end;
-
-  margin-top: -8px;
-}
-
-.login-recuperar a {
-  color: #6b7280;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  text-decoration: none;
-}
-
-.login-recuperar a:hover {
-  color: #111827;
-
-  text-decoration: underline;
-}
-
-
-/* =========================
-   RECUPERACIÓN EXITOSA
-========================= */
-
-.mensaje-recuperacion-exito {
-  margin: -5px 0 0;
-
-  padding: 12px 13px;
-
-  border: 1px solid #bbf7d0;
-  border-radius: 9px;
-
-  background: #f0fdf4;
-
-  color: #15803d;
-
-  font-size: 13px;
-  line-height: 1.5;
 }

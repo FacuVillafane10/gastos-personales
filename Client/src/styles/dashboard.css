@@ -16,13 +16,17 @@
 }
 
 .dashboard-label {
-  margin: 0 0 5px;
+  margin: 0 0 6px;
 
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: 0.18em;
 
-  color: #6b7280;
+  background: var(--degradado);
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .dashboard-header h1 {
@@ -45,21 +49,18 @@
 .usuario-nombre {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
 
-  padding: 8px 12px;
+  padding: 8px 13px;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
 
-  background: white;
-  color: #374151;
+  background: var(--superficie);
+  color: var(--texto);
 
   font-size: 14px;
   font-weight: 600;
-
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .usuario-nombre::before {
@@ -70,15 +71,16 @@
 
   border-radius: 50%;
 
-  background: #22c55e;
+  background: var(--verde);
 
   box-shadow:
-    0 0 0 3px rgba(34, 197, 94, 0.12);
+    0 0 0 3px rgba(34, 229, 143, 0.15),
+    0 0 10px var(--verde);
 }
 
 
 /* =========================
-   CAMBIAR CONTRASEÑA
+   CUENTA / SESIÓN
 ========================= */
 
 .boton-cuenta {
@@ -88,11 +90,11 @@
 
   padding: 10px 14px;
 
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
 
-  background: #ffffff;
-  color: #374151;
+  background: var(--superficie);
+  color: var(--texto);
 
   font-size: 14px;
   font-weight: 600;
@@ -101,53 +103,38 @@
   white-space: nowrap;
 
   cursor: pointer;
-
-  transition:
-    background 0.2s,
-    border-color 0.2s,
-    transform 0.15s;
 }
 
 .boton-cuenta:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
+  border-color: var(--azul);
+
+  background: rgba(61, 165, 255, 0.08);
 }
 
 .boton-cuenta:active {
   transform: scale(0.98);
 }
 
-
-/* =========================
-   CERRAR SESIÓN
-========================= */
-
 .boton-cerrar-sesion {
   padding: 9px 13px;
 
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
 
   background: transparent;
-  color: #6b7280;
+  color: var(--texto-suave);
 
   font-size: 13px;
   font-weight: 600;
 
   cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
 }
 
 .boton-cerrar-sesion:hover {
-  background: #fff;
+  border-color: rgba(255, 107, 122, 0.45);
 
-  color: #b91c1c;
-  border-color: #fecaca;
+  background: var(--peligro-fondo);
+  color: var(--peligro);
 
   transform: translateY(-1px);
 }
@@ -181,21 +168,25 @@
   width: 42px;
   height: 42px;
 
-  border: none;
+  border: 1px solid var(--borde);
   border-radius: 50%;
 
-  background: white;
+  background: var(--superficie);
+  color: var(--texto);
 
-  font-size: 28px;
+  font-size: 24px;
+  line-height: 1;
 
   cursor: pointer;
-
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .boton-periodo:hover {
-  background: #e5e7eb;
+  border-color: var(--verde);
+
+  color: var(--verde);
+
+  box-shadow:
+    0 0 18px rgba(34, 229, 143, 0.2);
 }
 
 
@@ -204,31 +195,57 @@
 ========================= */
 
 .total-card {
+  position: relative;
+  overflow: hidden;
+
   display: flex;
   flex-direction: column;
 
   padding: 30px;
   margin-bottom: 30px;
 
+  border: 1px solid var(--borde-fuerte);
   border-radius: 18px;
 
-  background: #111827;
-  color: white;
+  background:
+    radial-gradient(
+      500px 200px at 100% 0%,
+      rgba(61, 165, 255, 0.18),
+      transparent 70%
+    ),
+    radial-gradient(
+      500px 200px at 0% 100%,
+      rgba(34, 229, 143, 0.14),
+      transparent 70%
+    ),
+    var(--superficie);
 
   box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.08);
+    0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
 .total-card span {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 
-  font-size: 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 
-  color: #9ca3af;
+  color: var(--texto-suave);
 }
 
 .total-card strong {
+  font-family: var(--fuente-mono);
   font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+
+  background: var(--degradado);
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 
@@ -239,12 +256,10 @@
 .resumen {
   padding: 25px;
 
+  border: 1px solid var(--borde);
   border-radius: 18px;
 
-  background: white;
-
-  box-shadow:
-    0 5px 20px rgba(0, 0, 0, 0.05);
+  background: var(--superficie);
 }
 
 .resumen-header {
@@ -258,23 +273,7 @@
 .resumen-header h3 {
   margin: 0;
 
-  font-size: 20px;
-}
-
-.boton-agregar {
-  padding: 10px 16px;
-
-  border: none;
-  border-radius: 9px;
-
-  background: #111827;
-  color: white;
-
-  cursor: pointer;
-}
-
-.boton-agregar:hover {
-  background: #374151;
+  font-size: 18px;
 }
 
 
@@ -298,24 +297,27 @@
 
   padding: 18px;
 
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--borde);
   border-radius: 12px;
 
-  background: white;
+  background: var(--bg-elevado);
+  color: var(--texto);
 
   text-align: left;
 
   cursor: pointer;
-
-  transition:
-    background 0.2s,
-    transform 0.2s;
 }
 
 .origen-card:hover {
-  background: #f9fafb;
+  border-color: rgba(34, 229, 143, 0.5);
+
+  background: var(--superficie-2);
 
   transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(34, 229, 143, 0.08);
 }
 
 .origen-card > div:first-child {
@@ -330,7 +332,7 @@
 }
 
 .origen-card small {
-  color: #9ca3af;
+  color: var(--texto-tenue);
 }
 
 .origen-total {
@@ -341,11 +343,13 @@
 }
 
 .origen-total strong {
-  font-size: 17px;
+  font-family: var(--fuente-mono);
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .origen-total span {
-  color: #9ca3af;
+  color: var(--verde);
 
   font-size: 25px;
 }
@@ -373,18 +377,8 @@
     gap: 7px;
   }
 
-  .usuario-nombre {
-    padding: 7px 10px;
-
-    font-size: 12px;
-  }
-
-  .boton-cerrar-sesion {
-    padding: 7px 10px;
-
-    font-size: 12px;
-  }
-
+  .usuario-nombre,
+  .boton-cerrar-sesion,
   .boton-cuenta {
     padding: 7px 10px;
 
@@ -392,7 +386,7 @@
   }
 
   .total-card strong {
-    font-size: 32px;
+    font-size: 30px;
   }
 
   .origen-card {
@@ -400,7 +394,7 @@
   }
 
   .origen-total strong {
-    font-size: 15px;
+    font-size: 14px;
   }
 }
 
