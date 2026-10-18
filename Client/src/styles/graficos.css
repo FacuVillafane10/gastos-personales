@@ -1,0 +1,390 @@
+/* Paleta categórica validada para fondo oscuro (superficie #0d151d).
+   El color sigue a la categoría, no a su ranking. */
+
+.grafico-card {
+  --serie-1: #3987e5;
+  --serie-2: #d95926;
+  --serie-3: #199e70;
+  --serie-4: #c98500;
+  --serie-5: #d55181;
+  --serie-6: #008300;
+  --serie-7: #9085e9;
+  --serie-8: #e66767;
+
+  /* neutros para "sin categoría" y "otras" */
+  --gris-sin: #8a97a6;
+  --gris-otras: #566474;
+
+  /* estado: siempre con ícono y texto */
+  --estado-bueno: #0ca30c;
+  --estado-alerta: #fab219;
+
+  margin-bottom: 30px;
+  padding: 25px;
+
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+
+  background: var(--superficie);
+}
+
+.grafico-encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 20px;
+
+  margin-bottom: 20px;
+}
+
+.grafico-encabezado h3 {
+  margin: 0;
+
+  font-size: 18px;
+}
+
+.grafico-subtitulo {
+  margin: 4px 0 0;
+
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
+
+/* ---------- comparación con el mes anterior ---------- */
+
+.grafico-comparacion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0;
+  padding: 6px 11px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 999px;
+
+  color: var(--texto);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.grafico-comparacion small {
+  color: var(--texto-tenue);
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.comparacion-sube span[aria-hidden] {
+  color: var(--estado-alerta);
+}
+
+.comparacion-baja span[aria-hidden] {
+  color: var(--estado-bueno);
+}
+
+.comparacion-igual span[aria-hidden] {
+  color: var(--texto-suave);
+}
+
+/* ---------- barra apilada ---------- */
+
+.barra-apilada {
+  position: relative;
+
+  display: flex;
+  gap: 2px;
+
+  margin-bottom: 18px;
+}
+
+.segmento {
+  min-width: 6px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition: opacity 0.15s ease;
+}
+
+.segmento-marca {
+  display: block;
+
+  width: 100%;
+  height: 16px;
+
+  background: var(--color);
+}
+
+.segmento:first-of-type .segmento-marca {
+  border-radius: 4px 0 0 4px;
+}
+
+.segmento:last-of-type .segmento-marca {
+  border-radius: 0 4px 4px 0;
+}
+
+.segmento:only-of-type .segmento-marca {
+  border-radius: 4px;
+}
+
+.segmento:hover .segmento-marca,
+.segmento:focus-visible .segmento-marca {
+  filter: brightness(1.2);
+}
+
+.segmento:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 2px;
+}
+
+.segmento-atenuado,
+.fila-atenuada {
+  opacity: 0.45;
+}
+
+/* ---------- tooltip ---------- */
+
+.grafico-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  z-index: 5;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  padding: 9px 12px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 10px;
+
+  background: var(--superficie-2);
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  transform: translateX(-50%);
+
+  pointer-events: none;
+
+  white-space: nowrap;
+}
+
+.grafico-tooltip strong {
+  color: var(--texto);
+
+  font-family: var(--fuente-mono);
+  font-size: 15px;
+}
+
+.grafico-tooltip span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: var(--texto-suave);
+
+  font-size: 12px;
+}
+
+.clave-linea {
+  display: inline-block;
+
+  width: 12px;
+  height: 3px;
+
+  border-radius: 2px;
+
+  background: var(--color);
+}
+
+/* ---------- lista (leyenda + tabla) ---------- */
+
+.lista-categorias {
+  display: flex;
+  flex-direction: column;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.lista-categorias li {
+  display: grid;
+  grid-template-columns: 14px 1fr auto 48px;
+  align-items: center;
+  gap: 12px;
+
+  padding: 10px 2px;
+
+  border-top: 1px solid var(--borde);
+
+  font-size: 14px;
+
+  transition: opacity 0.15s ease;
+}
+
+.lista-categorias li:first-child {
+  border-top: none;
+}
+
+.clave-cuadro {
+  display: block;
+
+  width: 10px;
+  height: 10px;
+
+  border-radius: 3px;
+
+  background: var(--color);
+}
+
+.categoria-nombre {
+  overflow: hidden;
+
+  color: var(--texto);
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categoria-monto {
+  color: var(--texto);
+
+  font-family: var(--fuente-mono);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.categoria-porcentaje {
+  color: var(--texto-suave);
+
+  font-size: 13px;
+  text-align: right;
+}
+
+/* ---------- cuotas pendientes ---------- */
+
+.cuotas-resumen {
+  margin-bottom: 20px;
+}
+
+.cuotas-total {
+  display: block;
+
+  margin-bottom: 6px;
+
+  font-family: var(--fuente-mono);
+  font-size: 30px;
+  letter-spacing: -0.03em;
+}
+
+.cuotas-resumen p {
+  margin: 0;
+
+  color: var(--texto-suave);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cuotas-resumen b {
+  color: var(--texto);
+}
+
+.cuotas-meses {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.cuotas-meses li {
+  display: grid;
+  grid-template-columns: 52px 1fr 110px;
+  align-items: center;
+  gap: 12px;
+}
+
+.cuotas-mes-nombre {
+  color: var(--texto-suave);
+
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.cuotas-barra-pista {
+  display: block;
+
+  height: 10px;
+}
+
+.cuotas-barra {
+  display: block;
+
+  height: 100%;
+
+  border-radius: 0 4px 4px 0;
+
+  background: #3987e5;
+
+  transition: filter 0.15s ease;
+}
+
+.cuotas-meses li:hover .cuotas-barra {
+  filter: brightness(1.2);
+}
+
+.cuotas-mes-monto {
+  color: var(--texto);
+
+  font-family: var(--fuente-mono);
+  font-size: 13px;
+  text-align: right;
+}
+
+.cuotas-nota {
+  margin: 14px 0 0;
+
+  color: var(--texto-tenue);
+
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .grafico-card {
+    padding: 18px;
+  }
+
+  .lista-categorias li {
+    grid-template-columns: 14px 1fr auto 40px;
+    gap: 9px;
+  }
+
+  .cuotas-meses li {
+    grid-template-columns: 46px 1fr 92px;
+    gap: 9px;
+  }
+
+  .cuotas-total {
+    font-size: 26px;
+  }
+}

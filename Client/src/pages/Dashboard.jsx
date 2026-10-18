@@ -22,6 +22,9 @@ import {
   generarCopias,
 } from "../utils/copiarGastos";
 
+import CuotasPendientes from "../components/CuotasPendientes";
+import GastosPorCategoria from "../components/GastosPorCategoria";
+
 const nombresMeses = [
   "Enero",
   "Febrero",
@@ -162,6 +165,31 @@ const Dashboard = () => {
   useEffect(() => {
     cargarResumen();
   }, [anio, mes]);
+
+  // Categorías activas, ordenadas por id: definen el color de cada una
+  const [idsCategorias, setIdsCategorias] =
+    useState([]);
+
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const data = await obtenerCategorias();
+
+        setIdsCategorias(
+          data
+            .map((categoria) => categoria.id)
+            .sort((a, b) => a - b)
+        );
+      } catch (error) {
+        console.error(
+          "No se pudieron obtener las categorías",
+          error
+        );
+      }
+    };
+
+    cargarCategorias();
+  }, []);
 
  useEffect(() => {
   const cargarUsuario = async () => {
@@ -699,6 +727,35 @@ const handleCerrarSesion = async () => {
             </div>
 
           </button>
+
+
+          {/* GASTOS POR CATEGORÍA */}
+
+          <GastosPorCategoria
+            categorias={resumen.categorias}
+            idsCategorias={idsCategorias}
+            totalGeneral={resumen.totalGeneral}
+            mesAnterior={resumen.mesAnterior}
+            nombreMesAnterior={
+              resumen.mesAnterior
+                ? nombresMeses[
+                    resumen.mesAnterior.mes - 1
+                  ].toLowerCase()
+                : ""
+            }
+            periodo={`${nombresMeses[mes - 1]} ${anio}`}
+            formatearDinero={formatearDinero}
+          />
+
+
+          {/* CUOTAS PENDIENTES */}
+
+          <CuotasPendientes
+            cuotas={resumen.cuotasPendientes}
+            periodo={`${nombresMeses[mes - 1]} ${anio}`}
+            nombresMeses={nombresMeses}
+            formatearDinero={formatearDinero}
+          />
 
 
           {/* RESUMEN POR ORIGEN */}
