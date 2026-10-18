@@ -176,13 +176,19 @@ const Movimientos = () => {
   // ============================
 
   const agregarFila = () => {
-    const numeroMes =
-      String(mes).padStart(2, "0");
+    // Fecha de hoy según el dispositivo (no UTC)
+    const hoy = new Date();
+
+    const fechaHoy = [
+      hoy.getFullYear(),
+      String(hoy.getMonth() + 1).padStart(2, "0"),
+      String(hoy.getDate()).padStart(2, "0"),
+    ].join("-");
 
     const nuevaFila = {
       id: crypto.randomUUID(),
 
-      fecha: `${anio}-${numeroMes}-01`,
+      fecha: fechaHoy,
 
       descripcion: "",
 
