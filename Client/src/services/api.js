@@ -313,3 +313,39 @@ export const crearCategoria =
       }
     );
   };
+
+// ===================================
+// INGRESOS
+// ===================================
+
+
+// OBTENER INGRESOS MENSUALES
+
+export const obtenerIngresosMensuales =
+  async (
+    anio,
+    mes
+  ) => {
+    return await apiFetch(
+      `/ingresos?anio=${anio}&mes=${mes}`
+    );
+  };
+
+
+// GUARDAR CAMBIOS DE INGRESOS
+
+export const guardarCambiosIngresos =
+  async (
+    cambios
+  ) => {
+    return await apiFetch(
+      "/ingresos/cambios",
+      {
+        method: "POST",
+
+        body: JSON.stringify(
+          cambios
+        ),
+      }
+    );
+  };

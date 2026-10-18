@@ -1,0 +1,48 @@
+/* Ingresos: se usan los estilos de la grilla de gastos, con el
+   acento en verde y un diseño de tarjeta propio en el celular
+   (la tabla tiene 5 columnas en lugar de 7). */
+
+.total-ingresos strong {
+  background: linear-gradient(
+    135deg,
+    var(--verde),
+    #7af0b8
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 700px) {
+  /* orden: fecha | importe, luego descripción y observaciones */
+  .tabla-gastos.tabla-ingresos td:nth-child(1) {
+    order: 1;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ingresos td:nth-child(3) {
+    order: 2;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ingresos td:nth-child(2) {
+    order: 3;
+    grid-column: 1 / -1;
+  }
+
+  .tabla-gastos.tabla-ingresos td:nth-child(4) {
+    order: 4;
+    grid-column: 1 / -1;
+  }
+
+  /* el botón eliminar es la 5.ª celda */
+  .tabla-gastos.tabla-ingresos td:nth-child(5) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+
+    order: 0;
+    grid-column: auto;
+  }
+}

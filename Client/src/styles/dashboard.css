@@ -472,3 +472,72 @@
 
   font-size: 13px;
 }
+
+
+/* =========================
+   BALANCE E INGRESOS
+========================= */
+
+.total-card strong.balance-negativo {
+  background: linear-gradient(135deg, #ff6b7a, #ffa36b);
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.balance-detalle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  margin-top: 22px;
+  padding-top: 18px;
+
+  border-top: 1px solid var(--borde-fuerte);
+}
+
+.balance-detalle div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.balance-detalle small {
+  color: var(--texto-suave);
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.balance-detalle b {
+  font-family: var(--fuente-mono);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.monto-ingresos {
+  color: var(--verde);
+}
+
+.monto-gastos {
+  color: var(--azul);
+}
+
+.ingresos-card {
+  margin-bottom: 30px;
+
+  border-color: rgba(34, 229, 143, 0.3);
+}
+
+.ingresos-card .origen-total strong {
+  color: var(--verde);
+}
+
+@media (max-width: 600px) {
+  .balance-detalle b {
+    font-size: 15px;
+  }
+}

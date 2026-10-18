@@ -11,6 +11,8 @@ import origenRoutes from "./routes/origen.routes.js";
 import resumenRoutes from "./routes/resumen.routes.js";
 import gastoRoutes from "./routes/gasto.routes.js";
 import categoriaRoutes from "./routes/categoria.routes.js";
+import ingresoRoutes from "./routes/ingreso.routes.js";
+import { ejecutarMigraciones } from "./database/migraciones.js";
 
 import {
   requerirAutenticacion,
@@ -68,6 +70,12 @@ app.use(
   "/api/gastos",
   requerirAutenticacion,
   gastoRoutes
+);
+
+app.use(
+  "/api/ingresos",
+  requerirAutenticacion,
+  ingresoRoutes
 );
 
 app.use(
@@ -134,6 +142,8 @@ const iniciarServidor = async () => {
     console.log(
       `✅ PostgreSQL conectado a: ${result.rows[0].current_database}`
     );
+
+    await ejecutarMigraciones();
 
     app.listen(PORT, () => {
       console.log(

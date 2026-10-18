@@ -417,6 +417,14 @@ const handleCerrarSesion = async () => {
     0
   );
 
+  // Ingresos y balance del mes (0 si el servidor aún no los envía)
+  const totalIngresos =
+    resumen?.totalIngresos ?? 0;
+
+  const balance =
+    totalIngresos -
+    (resumen?.totalGeneral ?? 0);
+
   // =========================
   // NAVEGACIÓN ENTRE MESES
   // =========================
@@ -604,16 +612,93 @@ const handleCerrarSesion = async () => {
           <section className="total-card">
 
             <span>
-              Total del mes
+              Balance del mes
             </span>
 
-            <strong>
-              {formatearDinero(
-                resumen.totalGeneral
-              )}
+            <strong
+              className={
+                balance < 0
+                  ? "balance-negativo"
+                  : ""
+              }
+            >
+              {formatearDinero(balance)}
             </strong>
 
+            <div className="balance-detalle">
+
+              <div>
+
+                <small>
+                  Ingresos
+                </small>
+
+                <b className="monto-ingresos">
+                  {formatearDinero(
+                    totalIngresos
+                  )}
+                </b>
+
+              </div>
+
+              <div>
+
+                <small>
+                  Gastos
+                </small>
+
+                <b className="monto-gastos">
+                  {formatearDinero(
+                    resumen.totalGeneral
+                  )}
+                </b>
+
+              </div>
+
+            </div>
+
           </section>
+
+
+          {/* ACCESO A INGRESOS */}
+
+          <button
+            type="button"
+            className="origen-card ingresos-card"
+            onClick={() =>
+              navigate(
+                `/ingresos?anio=${anio}&mes=${mes}`
+              )
+            }
+          >
+
+            <div>
+
+              <span className="origen-nombre">
+                Ingresos
+              </span>
+
+              <small>
+                Ver y cargar lo que entra
+              </small>
+
+            </div>
+
+            <div className="origen-total">
+
+              <strong>
+                {formatearDinero(
+                  totalIngresos
+                )}
+              </strong>
+
+              <span>
+                ›
+              </span>
+
+            </div>
+
+          </button>
 
 
           {/* RESUMEN POR ORIGEN */}

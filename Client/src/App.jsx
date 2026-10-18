@@ -6,6 +6,7 @@ import {
 
 import Dashboard from "./pages/Dashboard";
 import Movimientos from "./pages/Movimientos";
+import Ingresos from "./pages/Ingresos";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import CambiarPassword from "./pages/CambiarPassword";
@@ -78,6 +79,18 @@ function App() {
         element={
           <RutaProtegida>
             <Movimientos />
+          </RutaProtegida>
+        }
+      />
+
+
+      {/* INGRESOS - RUTA PRIVADA */}
+
+      <Route
+        path="/ingresos"
+        element={
+          <RutaProtegida>
+            <Ingresos />
           </RutaProtegida>
         }
       />

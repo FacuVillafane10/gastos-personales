@@ -1,4 +1,5 @@
 import { obtenerResumenMensual } from "../repositories/resumen.repository.js";
+import { obtenerTotalIngresos } from "../repositories/ingreso.repository.js";
 
 export const generarResumenMensual = async (
   usuarioId,
@@ -39,12 +40,21 @@ export const generarResumenMensual = async (
     0
   );
 
+  const totalIngresos =
+    await obtenerTotalIngresos(
+      usuarioId,
+      anioNumero,
+      mesNumero
+    );
+
   return {
     periodo: {
       anio: anioNumero,
       mes: mesNumero,
     },
     totalGeneral,
+    totalIngresos,
+    balance: totalIngresos - totalGeneral,
     origenes: origenesFormateados,
   };
 };
