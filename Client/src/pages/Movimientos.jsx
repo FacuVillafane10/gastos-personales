@@ -828,7 +828,7 @@ const Movimientos = () => {
 
                       {/* FECHA */}
 
-                      <td>
+                      <td data-label="Fecha">
 
                         <input
                           type="date"
@@ -853,7 +853,7 @@ const Movimientos = () => {
 
                       {/* DESCRIPCIÓN */}
 
-                      <td>
+                      <td data-label="Descripción">
 
                         <input
                           type="text"
@@ -879,7 +879,7 @@ const Movimientos = () => {
 
                       {/* CATEGORÍA */}
 
-                      <td>
+                      <td data-label="Categoría">
 
                         <select
                           value={
@@ -937,7 +937,7 @@ const Movimientos = () => {
 
                       {/* CUOTAS */}
 
-                      <td>
+                      <td data-label="Cuotas">
 
                         <div className="campo-cuotas">
 
@@ -994,7 +994,7 @@ const Movimientos = () => {
 
                       {/* IMPORTE */}
 
-                      <td>
+                      <td data-label="Importe">
 
                         <input
                           type="number"
@@ -1022,7 +1022,7 @@ const Movimientos = () => {
 
                       {/* OBSERVACIONES */}
 
-                      <td>
+                      <td data-label="Observaciones">
 
                         <input
                           type="text"

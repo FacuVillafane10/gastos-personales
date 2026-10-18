@@ -297,3 +297,145 @@
     padding: 18px;
   }
 }
+
+
+/* =========================
+   MÓVIL: cada gasto como tarjeta
+========================= */
+
+@media (max-width: 700px) {
+  .tabla-wrapper {
+    overflow-x: visible;
+  }
+
+  .tabla-gastos,
+  .tabla-gastos tbody {
+    display: block;
+  }
+
+  .tabla-gastos thead {
+    display: none;
+  }
+
+  .tabla-gastos tbody {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+  .tabla-gastos tr {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+
+    padding: 46px 14px 14px;
+
+    border: 1px solid var(--borde-fuerte);
+    border-radius: 14px;
+
+    background: var(--bg-elevado);
+  }
+
+  .tabla-gastos tr.fila-modificada {
+    border-color: rgba(34, 229, 143, 0.45);
+
+    background: rgba(34, 229, 143, 0.05);
+  }
+
+  .tabla-gastos tbody tr:hover {
+    background: var(--bg-elevado);
+  }
+
+  .tabla-gastos tr.fila-modificada:hover {
+    background: rgba(34, 229, 143, 0.05);
+  }
+
+  .tabla-gastos td {
+    min-width: 0;
+
+    padding: 0;
+
+    border: none;
+  }
+
+  /* etiqueta de cada campo */
+  .tabla-gastos td[data-label]::before {
+    content: attr(data-label);
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: var(--texto-tenue);
+
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* orden: fecha | importe, luego el resto a ancho completo */
+  .tabla-gastos td:nth-child(1) { order: 1; }
+  .tabla-gastos td:nth-child(5) { order: 2; }
+  .tabla-gastos td:nth-child(2) { order: 3; grid-column: 1 / -1; }
+  .tabla-gastos td:nth-child(3) { order: 4; grid-column: 1 / -1; }
+  .tabla-gastos td:nth-child(4) { order: 5; grid-column: 1 / -1; }
+  .tabla-gastos td:nth-child(6) { order: 6; grid-column: 1 / -1; }
+
+  .tabla-gastos td input,
+  .tabla-gastos td select {
+    min-height: 44px;
+
+    border-color: var(--borde);
+
+    background: var(--superficie);
+  }
+
+  .tabla-gastos td input[type="date"] {
+    min-width: 0;
+
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .campo-cuotas {
+    justify-content: flex-start;
+
+    min-width: 0;
+  }
+
+  .campo-cuotas input {
+    width: 70px;
+  }
+
+  /* botón eliminar arriba a la derecha de la tarjeta */
+  .tabla-gastos td:nth-child(7) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .boton-eliminar {
+    width: 36px;
+    height: 36px;
+
+    border: 1px solid var(--borde);
+  }
+
+  .acciones-grilla {
+    flex-direction: column-reverse;
+  }
+
+  .acciones-grilla button {
+    width: 100%;
+  }
+
+  .grilla-header {
+    flex-wrap: wrap;
+
+    gap: 12px;
+  }
+}
