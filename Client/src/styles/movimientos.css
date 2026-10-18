@@ -457,3 +457,59 @@
 .sin-movimientos p {
   margin: 0 0 4px;
 }
+
+
+/* =========================
+   CUOTAS FINALIZADAS (ej. 3/3)
+========================= */
+
+:root {
+  --finalizado: #f5b84a;
+}
+
+.tabla-gastos tr.fila-finalizada {
+  background: rgba(245, 184, 74, 0.08);
+
+  box-shadow: inset 3px 0 0 var(--finalizado);
+}
+
+.tabla-gastos tbody tr.fila-finalizada:hover {
+  background: rgba(245, 184, 74, 0.12);
+}
+
+.tabla-gastos tr.fila-finalizada td:nth-child(5) input {
+  color: var(--finalizado);
+}
+
+.etiqueta-finalizada {
+  margin-left: 6px;
+
+  padding: 3px 7px;
+
+  border: 1px solid rgba(245, 184, 74, 0.45);
+  border-radius: 999px;
+
+  background: rgba(245, 184, 74, 0.12);
+  color: var(--finalizado) !important;
+
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .tabla-gastos tr.fila-finalizada {
+    border-color: rgba(245, 184, 74, 0.5);
+
+    background: rgba(245, 184, 74, 0.07);
+
+    box-shadow: none;
+  }
+
+  .tabla-gastos tr.fila-finalizada:hover {
+    background: rgba(245, 184, 74, 0.07);
+  }
+}

@@ -8,10 +8,18 @@ import {
 
 import {
   crearOrigen,
+  guardarCambiosGastos,
+  obtenerCategorias,
+  obtenerGastosMensuales,
   obtenerResumenMensual,
   obtenerUsuarioActual,
   cerrarSesion,
 } from "../services/api";
+
+import {
+  emparejarPorDescripcion,
+  generarCopias,
+} from "../utils/copiarGastos";
 
 const nombresMeses = [
   "Enero",
@@ -65,6 +73,35 @@ const Dashboard = () => {
     useState(false);
 
   const [errorOrigen, setErrorOrigen] =
+    useState("");
+
+  // Modal copiar gastos de otro mes (todos los orígenes)
+  const mesPrevio = mes === 1 ? 12 : mes - 1;
+
+  const anioPrevio = mes === 1 ? anio - 1 : anio;
+
+  const [modalCopia, setModalCopia] =
+    useState(false);
+
+  const [pasoCopia, setPasoCopia] =
+    useState("elegir");
+
+  const [mesOrigen, setMesOrigen] =
+    useState(mesPrevio);
+
+  const [anioOrigen, setAnioOrigen] =
+    useState(anioPrevio);
+
+  const [planCopia, setPlanCopia] =
+    useState([]);
+
+  const [errorCopia, setErrorCopia] =
+    useState("");
+
+  const [procesandoCopia, setProcesandoCopia] =
+    useState(false);
+
+  const [avisoCopia, setAvisoCopia] =
     useState("");
 
   // =========================
@@ -127,6 +164,226 @@ const handleCerrarSesion = async () => {
     );
   }
 };
+  // =========================
+  // COPIAR GASTOS DE OTRO MES
+  // =========================
+
+  const abrirModalCopia = () => {
+    setMesOrigen(mesPrevio);
+    setAnioOrigen(anioPrevio);
+    setPasoCopia("elegir");
+    setPlanCopia([]);
+    setErrorCopia("");
+    setModalCopia(true);
+  };
+
+  const cerrarModalCopia = () => {
+    if (procesandoCopia) return;
+
+    setModalCopia(false);
+    setErrorCopia("");
+  };
+
+  // Paso 1: arma la vista previa, sin guardar nada
+  const revisarCopia = async (event) => {
+    event.preventDefault();
+
+    if (
+      Number(anioOrigen) === anio &&
+      Number(mesOrigen) === mes
+    ) {
+      setErrorCopia(
+        "Elegí un mes distinto al que estás viendo."
+      );
+
+      return;
+    }
+
+    try {
+      setProcesandoCopia(true);
+      setErrorCopia("");
+
+      const categorias =
+        await obtenerCategorias();
+
+      const idsCategoriasValidas = new Set(
+        categorias.map(
+          (categoria) => categoria.id
+        )
+      );
+
+      const items = await Promise.all(
+        resumen.origenes.map(
+          async (origen) => {
+            const [
+              gastosOrigen,
+              gastosDestino,
+            ] = await Promise.all([
+              obtenerGastosMensuales(
+                origen.id,
+                Number(anioOrigen),
+                Number(mesOrigen)
+              ),
+
+              obtenerGastosMensuales(
+                origen.id,
+                anio,
+                mes
+              ),
+            ]);
+
+            const {
+              copias,
+              cuotasFinalizadas,
+            } = generarCopias({
+              gastosOrigen,
+              anio,
+              mes,
+              anioOrigen,
+              mesOrigen,
+              idsCategoriasValidas,
+            });
+
+            const emparejadas =
+              emparejarPorDescripcion(
+                copias,
+                gastosDestino
+              );
+
+            return {
+              origen,
+
+              tieneGastos:
+                gastosOrigen.length > 0,
+
+              cuotasFinalizadas,
+
+              crear: emparejadas
+                .filter(
+                  (par) => !par.existente
+                )
+                .map((par) => par.copia),
+
+              actualizar: emparejadas
+                .filter(
+                  (par) => par.existente
+                )
+                .map((par) => ({
+                  id: par.existente.id,
+                  ...par.copia,
+                })),
+            };
+          }
+        )
+      );
+
+      const conGastos = items.filter(
+        (item) => item.tieneGastos
+      );
+
+      const totalACopiar = conGastos.reduce(
+        (suma, item) =>
+          suma +
+          item.crear.length +
+          item.actualizar.length,
+        0
+      );
+
+      if (totalACopiar === 0) {
+        setErrorCopia(
+          conGastos.length === 0
+            ? `No hay gastos cargados en ${
+                nombresMeses[mesOrigen - 1]
+              } ${anioOrigen}.`
+            : "Todos los gastos de ese mes son cuotas que ya terminaron."
+        );
+
+        return;
+      }
+
+      setPlanCopia(conGastos);
+
+      setPasoCopia("revisar");
+    } catch (error) {
+      setErrorCopia(
+        error.message ||
+          "No se pudo preparar la copia"
+      );
+    } finally {
+      setProcesandoCopia(false);
+    }
+  };
+
+  // Paso 2: guarda. Cada origen se guarda completo o no se guarda.
+  const confirmarCopia = async () => {
+    setProcesandoCopia(true);
+    setErrorCopia("");
+
+    const fallidos = [];
+
+    let copiados = 0;
+
+    for (const item of planCopia) {
+      const cantidad =
+        item.crear.length +
+        item.actualizar.length;
+
+      if (cantidad === 0) continue;
+
+      try {
+        await guardarCambiosGastos(
+          item.origen.id,
+          {
+            crear: item.crear,
+            actualizar: item.actualizar,
+          }
+        );
+
+        copiados += cantidad;
+      } catch (error) {
+        fallidos.push(
+          `${item.origen.nombre} (${
+            error.message || "error"
+          })`
+        );
+      }
+    }
+
+    await cargarResumen();
+
+    setProcesandoCopia(false);
+
+    if (fallidos.length > 0) {
+      setPasoCopia("elegir");
+
+      setErrorCopia(
+        `No se pudo copiar en: ${fallidos.join(
+          ", "
+        )}. Los demás orígenes sí se copiaron; podés volver a intentar y los gastos no se duplican.`
+      );
+
+      return;
+    }
+
+    setModalCopia(false);
+
+    setAvisoCopia(
+      `Se copiaron ${copiados} gasto${
+        copiados === 1 ? "" : "s"
+      } de ${
+        nombresMeses[mesOrigen - 1]
+      } ${anioOrigen}.`
+    );
+  };
+
+  const totalPlanCopia = planCopia.reduce(
+    (suma, item) =>
+      suma +
+      item.crear.length +
+      item.actualizar.length,
+    0
+  );
+
   // =========================
   // NAVEGACIÓN ENTRE MESES
   // =========================
@@ -298,6 +555,15 @@ const handleCerrarSesion = async () => {
       )}
 
 
+      {/* AVISO DE COPIA */}
+
+      {avisoCopia && (
+        <p className="aviso-copia">
+          {avisoCopia}
+        </p>
+      )}
+
+
       {/* ERROR */}
 
       {error && (
@@ -339,13 +605,31 @@ const handleCerrarSesion = async () => {
                 Resumen
               </h3>
 
-              <button
-                type="button"
-                className="boton-agregar"
-                onClick={abrirModal}
-              >
-                + Agregar
-              </button>
+              <div className="resumen-acciones">
+
+                {resumen.origenes.length > 0 && (
+
+                  <button
+                    type="button"
+                    className="boton-secundario"
+                    onClick={
+                      abrirModalCopia
+                    }
+                  >
+                    Copiar de otro mes
+                  </button>
+
+                )}
+
+                <button
+                  type="button"
+                  className="boton-agregar"
+                  onClick={abrirModal}
+                >
+                  + Agregar
+                </button>
+
+              </div>
 
             </div>
 
@@ -514,6 +798,266 @@ const handleCerrarSesion = async () => {
               </div>
 
             </form>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* MODAL COPIAR DE OTRO MES */}
+
+      {modalCopia && (
+
+        <div className="modal-overlay">
+
+          <div className="modal">
+
+            <div className="modal-header">
+
+              <div>
+
+                <span className="modal-label">
+                  COPIAR GASTOS
+                </span>
+
+                <h2>
+                  {pasoCopia === "elegir"
+                    ? "Copiar de otro mes"
+                    : "Revisá antes de copiar"}
+                </h2>
+
+              </div>
+
+              <button
+                type="button"
+                className="modal-cerrar"
+                onClick={cerrarModalCopia}
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            {pasoCopia === "elegir" ? (
+
+              <form onSubmit={revisarCopia}>
+
+                <p className="modal-ayuda">
+                  Se traen los gastos de{" "}
+                  <strong>todos tus orígenes</strong>{" "}
+                  del mes elegido, a{" "}
+                  {nombresMeses[mes - 1]} {anio}.
+                  Si ya hay un gasto con la misma
+                  descripción, se actualiza con
+                  los datos del mes elegido. Antes
+                  de guardar vas a ver un resumen.
+                </p>
+
+                <div className="fila-selectores">
+
+                  <div>
+
+                    <label
+                      htmlFor="mesOrigenCopia"
+                      className="campo-label"
+                    >
+                      Mes
+                    </label>
+
+                    <select
+                      id="mesOrigenCopia"
+                      className="campo-input"
+                      value={mesOrigen}
+                      onChange={(event) =>
+                        setMesOrigen(
+                          Number(
+                            event.target.value
+                          )
+                        )
+                      }
+                    >
+                      {nombresMeses.map(
+                        (nombre, indice) => (
+                          <option
+                            key={nombre}
+                            value={indice + 1}
+                          >
+                            {nombre}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                  </div>
+
+                  <div>
+
+                    <label
+                      htmlFor="anioOrigenCopia"
+                      className="campo-label"
+                    >
+                      Año
+                    </label>
+
+                    <select
+                      id="anioOrigenCopia"
+                      className="campo-input"
+                      value={anioOrigen}
+                      onChange={(event) =>
+                        setAnioOrigen(
+                          Number(
+                            event.target.value
+                          )
+                        )
+                      }
+                    >
+                      {[0, 1, 2, 3, 4, 5].map(
+                        (resta) => (
+                          <option
+                            key={resta}
+                            value={
+                              anio + 1 - resta
+                            }
+                          >
+                            {anio + 1 - resta}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                  </div>
+
+                </div>
+
+
+                {errorCopia && (
+                  <p className="modal-error">
+                    {errorCopia}
+                  </p>
+                )}
+
+
+                <div className="modal-acciones">
+
+                  <button
+                    type="button"
+                    className="boton-cancelar"
+                    onClick={cerrarModalCopia}
+                    disabled={procesandoCopia}
+                  >
+                    Cancelar
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="boton-guardar"
+                    disabled={procesandoCopia}
+                  >
+                    {procesandoCopia
+                      ? "Revisando..."
+                      : "Revisar"}
+                  </button>
+
+                </div>
+
+              </form>
+
+            ) : (
+
+              <>
+
+                <p className="modal-ayuda">
+                  Desde {nombresMeses[mesOrigen - 1]}{" "}
+                  {anioOrigen} hacia{" "}
+                  {nombresMeses[mes - 1]} {anio}:
+                </p>
+
+                <ul className="copia-lista">
+
+                  {planCopia.map((item) => (
+
+                    <li key={item.origen.id}>
+
+                      <strong>
+                        {item.origen.nombre}
+                      </strong>
+
+                      <span>
+                        {item.crear.length} nuevo
+                        {item.crear.length === 1
+                          ? ""
+                          : "s"}
+                        {item.actualizar.length > 0 &&
+                          ` · ${
+                            item.actualizar.length
+                          } a actualizar`}
+                        {item.cuotasFinalizadas >
+                          0 &&
+                          ` · ${
+                            item.cuotasFinalizadas
+                          } cuota${
+                            item.cuotasFinalizadas ===
+                            1
+                              ? ""
+                              : "s"
+                          } terminada${
+                            item.cuotasFinalizadas ===
+                            1
+                              ? ""
+                              : "s"
+                          } sin copiar`}
+                      </span>
+
+                    </li>
+
+                  ))}
+
+                </ul>
+
+
+                {errorCopia && (
+                  <p className="modal-error">
+                    {errorCopia}
+                  </p>
+                )}
+
+
+                <div className="modal-acciones">
+
+                  <button
+                    type="button"
+                    className="boton-cancelar"
+                    onClick={() =>
+                      setPasoCopia("elegir")
+                    }
+                    disabled={procesandoCopia}
+                  >
+                    Volver
+                  </button>
+
+                  <button
+                    type="button"
+                    className="boton-guardar"
+                    onClick={confirmarCopia}
+                    disabled={procesandoCopia}
+                  >
+                    {procesandoCopia
+                      ? "Copiando..."
+                      : `Copiar ${totalPlanCopia} gasto${
+                          totalPlanCopia === 1
+                            ? ""
+                            : "s"
+                        }`}
+                  </button>
+
+                </div>
+
+              </>
+
+            )}
 
           </div>
 

@@ -17,6 +17,11 @@ import {
   obtenerOrigen,
 } from "../services/api";
 
+import {
+  emparejarPorDescripcion,
+  generarCopias,
+} from "../utils/copiarGastos";
+
 const nombresMeses = [
   "Enero",
   "Febrero",
@@ -38,6 +43,21 @@ const formatearDinero = (valor) => {
     currency: "ARS",
     maximumFractionDigits: 0,
   }).format(valor);
+};
+
+// Una compra en cuotas está finalizada cuando la cuota actual
+// es igual al total (por ejemplo 3/3).
+const cuotasTerminadas = (gasto) => {
+  const actual = Number(gasto.cuotaActual);
+
+  const total = Number(gasto.cuotasTotales);
+
+  return (
+    Number.isInteger(actual) &&
+    Number.isInteger(total) &&
+    total > 0 &&
+    actual === total
+  );
 };
 
 const Movimientos = () => {
@@ -249,104 +269,21 @@ const Movimientos = () => {
         return;
       }
 
-      // Meses de diferencia entre el mes de origen y el que se está viendo
-      const diferenciaMeses =
-        anio * 12 +
-        mes -
-        (Number(anioOrigen) * 12 +
-          Number(mesOrigen));
-
-      const diasDelMes = new Date(
-        anio,
-        mes,
-        0
-      ).getDate();
-
-      const idsCategoriasValidas =
-        new Set(
-          categorias.map(
-            (categoria) => categoria.id
-          )
-        );
-
-      let cuotasFinalizadas = 0;
-
-      const nuevasFilas = [];
-
-      for (const gasto of gastosOrigen) {
-        let cuotaActual =
-          gasto.cuota_actual ?? "";
-
-        const cuotasTotales =
-          gasto.cuotas_totales ?? "";
-
-        // Las cuotas avanzan según los meses transcurridos
-        if (
-          cuotaActual !== "" &&
-          cuotasTotales !== ""
-        ) {
-          cuotaActual =
-            Number(cuotaActual) +
-            diferenciaMeses;
-
-          if (
-            cuotaActual < 1 ||
-            cuotaActual >
-              Number(cuotasTotales)
-          ) {
-            cuotasFinalizadas++;
-
-            continue;
-          }
-        }
-
-        const diaOrigen = Number(
-          String(gasto.fecha).slice(
-            8,
-            10
-          )
-        );
-
-        const dia = Math.min(
-          diaOrigen || 1,
-          diasDelMes
-        );
-
-        nuevasFilas.push({
-          id: crypto.randomUUID(),
-
-          fecha: `${anio}-${String(
-            mes
-          ).padStart(2, "0")}-${String(
-            dia
-          ).padStart(2, "0")}`,
-
-          descripcion:
-            gasto.descripcion,
-
-          categoriaId:
-            idsCategoriasValidas.has(
-              gasto.categoria_id
+      const { copias, cuotasFinalizadas } =
+        generarCopias({
+          gastosOrigen,
+          anio,
+          mes,
+          anioOrigen,
+          mesOrigen,
+          idsCategoriasValidas: new Set(
+            categorias.map(
+              (categoria) => categoria.id
             )
-              ? gasto.categoria_id
-              : null,
-
-          cuotaActual,
-
-          cuotasTotales,
-
-          monto: Number(gasto.monto),
-
-          observaciones:
-            gasto.observaciones || "",
-
-          esNuevo: true,
-
-          modificado: true,
+          ),
         });
-      }
 
-      if (nuevasFilas.length === 0) {
+      if (copias.length === 0) {
         setErrorCopia(
           "Todos los gastos de ese mes son cuotas que ya terminaron."
         );
@@ -356,72 +293,48 @@ const Movimientos = () => {
 
       // Si ya existe una fila con la misma descripción, se pisa con
       // los datos copiados; las demás se agregan como filas nuevas.
-      const normalizar = (texto) =>
-        String(texto || "")
-          .trim()
-          .toLowerCase();
-
-      const filasResultantes = [...gastos];
-
-      const yaPisadas = new Set();
+      const filas = [...gastos];
 
       let actualizados = 0;
 
       let agregados = 0;
 
-      for (const copia of nuevasFilas) {
-        const indice =
-          filasResultantes.findIndex(
-            (fila) =>
-              !yaPisadas.has(fila.id) &&
-              normalizar(
-                fila.descripcion
-              ) ===
-                normalizar(
-                  copia.descripcion
-                )
-          );
-
-        if (indice === -1) {
-          filasResultantes.push(copia);
-
-          // evita que otra copia con la misma descripción la pise
-          yaPisadas.add(copia.id);
+      for (const {
+        copia,
+        existente,
+      } of emparejarPorDescripcion(
+        copias,
+        gastos
+      )) {
+        if (!existente) {
+          filas.push({
+            id: crypto.randomUUID(),
+            ...copia,
+            esNuevo: true,
+            modificado: true,
+          });
 
           agregados++;
 
           continue;
         }
 
-        const existente =
-          filasResultantes[indice];
+        const indice = filas.findIndex(
+          (fila) => fila.id === existente.id
+        );
 
-        yaPisadas.add(existente.id);
-
-        filasResultantes[indice] = {
+        filas[indice] = {
           ...existente,
-
-          fecha: copia.fecha,
-          descripcion: copia.descripcion,
-          categoriaId: copia.categoriaId,
-          cuotaActual: copia.cuotaActual,
-          cuotasTotales:
-            copia.cuotasTotales,
-          monto: copia.monto,
-          observaciones:
-            copia.observaciones,
-
+          ...copia,
           modificado: true,
         };
 
         actualizados++;
       }
 
-      setGastos(filasResultantes);
+      setGastos(filas);
 
       setError("");
-
-      const cantidad = nuevasFilas.length;
 
       const detalle =
         actualizados > 0
@@ -442,8 +355,8 @@ const Movimientos = () => {
           : "";
 
       setMensaje(
-        `Se copiaron ${cantidad} gasto${
-          cantidad === 1 ? "" : "s"
+        `Se copiaron ${copias.length} gasto${
+          copias.length === 1 ? "" : "s"
         } de ${
           nombresMeses[mesOrigen - 1]
         } ${anioOrigen}${detalle}${aviso}. Revisalos y tocá "Guardar cambios".`
@@ -1134,11 +1047,16 @@ const Movimientos = () => {
 
                     <tr
                       key={gasto.id}
-                      className={
+                      className={[
                         gasto.modificado
                           ? "fila-modificada"
-                          : ""
-                      }
+                          : "",
+                        cuotasTerminadas(gasto)
+                          ? "fila-finalizada"
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
 
                       {/* FECHA */}
@@ -1301,6 +1219,17 @@ const Movimientos = () => {
                               )
                             }
                           />
+
+                          {cuotasTerminadas(gasto) && (
+
+                            <span
+                              className="etiqueta-finalizada"
+                              title="Cuotas finalizadas"
+                            >
+                              Final
+                            </span>
+
+                          )}
 
                         </div>
 

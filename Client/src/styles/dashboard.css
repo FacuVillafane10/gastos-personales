@@ -413,3 +413,62 @@
     flex-wrap: wrap;
   }
 }
+
+
+/* =========================
+   COPIAR DE OTRO MES
+========================= */
+
+.resumen-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.aviso-copia {
+  margin: 0 0 20px;
+
+  padding: 12px 14px;
+
+  border: 1px solid rgba(34, 229, 143, 0.3);
+  border-radius: var(--radio-chico);
+
+  background: var(--exito-fondo);
+  color: var(--verde);
+
+  font-size: 14px;
+}
+
+.copia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  max-height: 260px;
+  margin: 0;
+  padding: 0;
+
+  overflow-y: auto;
+
+  list-style: none;
+}
+
+.copia-lista li {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  padding: 11px 13px;
+
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
+
+  background: var(--bg-elevado);
+}
+
+.copia-lista li span {
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
