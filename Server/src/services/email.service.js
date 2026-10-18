@@ -20,6 +20,65 @@ const transporter =
 
 
 // ===================================
+// ENVÍO
+// Brevo (API HTTPS) si hay BREVO_API_KEY:
+// los hostings gratuitos bloquean SMTP.
+// Sin API key se usa SMTP (desarrollo local).
+// ===================================
+
+const TIMEOUT_MS = 15000;
+
+const parsearRemitente = (from) => {
+  const match = /^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/.exec(from || "");
+
+  return match
+    ? { name: match[1].trim() || undefined, email: match[2].trim() }
+    : { email: (from || "").trim() };
+};
+
+const enviarPorBrevo = async ({ from, to, subject, text, html }) => {
+  const remitente = parsearRemitente(from);
+
+  if (!remitente.email) {
+    throw new Error("EMAIL_FROM no está configurado");
+  }
+
+  const respuesta = await fetch(
+    "https://api.brevo.com/v3/smtp/email",
+    {
+      method: "POST",
+      headers: {
+        "api-key": process.env.BREVO_API_KEY,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        sender: remitente,
+        to: [{ email: to }],
+        subject,
+        textContent: text,
+        htmlContent: html,
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    }
+  );
+
+  if (!respuesta.ok) {
+    const detalle = await respuesta.text().catch(() => "");
+
+    throw new Error(
+      `Brevo respondió ${respuesta.status}: ${detalle}`
+    );
+  }
+};
+
+const enviarEmail = (mensaje) =>
+  process.env.BREVO_API_KEY
+    ? enviarPorBrevo(mensaje)
+    : transporter.sendMail(mensaje);
+
+
+// ===================================
 // ENVIAR EMAIL DE RECUPERACIÓN
 // ===================================
 
@@ -29,7 +88,7 @@ export const enviarEmailRecuperacion =
     nombre,
     link,
   }) => {
-    await transporter.sendMail({
+    const mensaje = {
       from:
         process.env.EMAIL_FROM,
 
@@ -114,5 +173,7 @@ Si no solicitaste el cambio, podés ignorar este correo.
 
         </div>
       `,
-    });
+    };
+
+    await enviarEmail(mensaje);
   };
