@@ -104,6 +104,31 @@ const Movimientos = () => {
   ] = useState(false);
 
   // ============================
+  // MODAL COPIAR DE OTRO MES
+  // ============================
+
+  const mesAnterior =
+    mes === 1 ? 12 : mes - 1;
+
+  const anioMesAnterior =
+    mes === 1 ? anio - 1 : anio;
+
+  const [modalCopia, setModalCopia] =
+    useState(false);
+
+  const [mesOrigen, setMesOrigen] =
+    useState(mesAnterior);
+
+  const [anioOrigen, setAnioOrigen] =
+    useState(anioMesAnterior);
+
+  const [errorCopia, setErrorCopia] =
+    useState("");
+
+  const [copiando, setCopiando] =
+    useState(false);
+
+  // ============================
   // CARGAR DATOS
   // ============================
 
@@ -170,6 +195,270 @@ const Movimientos = () => {
   useEffect(() => {
     cargarDatos();
   }, [id, anio, mes]);
+
+  // ============================
+  // COPIAR GASTOS DE OTRO MES
+  // ============================
+
+  const abrirModalCopia = () => {
+    setMesOrigen(mesAnterior);
+    setAnioOrigen(anioMesAnterior);
+    setErrorCopia("");
+    setModalCopia(true);
+  };
+
+  const cerrarModalCopia = () => {
+    if (copiando) return;
+
+    setModalCopia(false);
+    setErrorCopia("");
+  };
+
+  const handleCopiarGastos = async (event) => {
+    event.preventDefault();
+
+    if (
+      Number(anioOrigen) === anio &&
+      Number(mesOrigen) === mes
+    ) {
+      setErrorCopia(
+        "Elegí un mes distinto al que estás viendo."
+      );
+
+      return;
+    }
+
+    try {
+      setCopiando(true);
+      setErrorCopia("");
+
+      const gastosOrigen =
+        await obtenerGastosMensuales(
+          id,
+          Number(anioOrigen),
+          Number(mesOrigen)
+        );
+
+      if (gastosOrigen.length === 0) {
+        setErrorCopia(
+          `No hay gastos cargados en ${
+            nombresMeses[mesOrigen - 1]
+          } ${anioOrigen}.`
+        );
+
+        return;
+      }
+
+      // Meses de diferencia entre el mes de origen y el que se está viendo
+      const diferenciaMeses =
+        anio * 12 +
+        mes -
+        (Number(anioOrigen) * 12 +
+          Number(mesOrigen));
+
+      const diasDelMes = new Date(
+        anio,
+        mes,
+        0
+      ).getDate();
+
+      const idsCategoriasValidas =
+        new Set(
+          categorias.map(
+            (categoria) => categoria.id
+          )
+        );
+
+      let cuotasFinalizadas = 0;
+
+      const nuevasFilas = [];
+
+      for (const gasto of gastosOrigen) {
+        let cuotaActual =
+          gasto.cuota_actual ?? "";
+
+        const cuotasTotales =
+          gasto.cuotas_totales ?? "";
+
+        // Las cuotas avanzan según los meses transcurridos
+        if (
+          cuotaActual !== "" &&
+          cuotasTotales !== ""
+        ) {
+          cuotaActual =
+            Number(cuotaActual) +
+            diferenciaMeses;
+
+          if (
+            cuotaActual < 1 ||
+            cuotaActual >
+              Number(cuotasTotales)
+          ) {
+            cuotasFinalizadas++;
+
+            continue;
+          }
+        }
+
+        const diaOrigen = Number(
+          String(gasto.fecha).slice(
+            8,
+            10
+          )
+        );
+
+        const dia = Math.min(
+          diaOrigen || 1,
+          diasDelMes
+        );
+
+        nuevasFilas.push({
+          id: crypto.randomUUID(),
+
+          fecha: `${anio}-${String(
+            mes
+          ).padStart(2, "0")}-${String(
+            dia
+          ).padStart(2, "0")}`,
+
+          descripcion:
+            gasto.descripcion,
+
+          categoriaId:
+            idsCategoriasValidas.has(
+              gasto.categoria_id
+            )
+              ? gasto.categoria_id
+              : null,
+
+          cuotaActual,
+
+          cuotasTotales,
+
+          monto: Number(gasto.monto),
+
+          observaciones:
+            gasto.observaciones || "",
+
+          esNuevo: true,
+
+          modificado: true,
+        });
+      }
+
+      if (nuevasFilas.length === 0) {
+        setErrorCopia(
+          "Todos los gastos de ese mes son cuotas que ya terminaron."
+        );
+
+        return;
+      }
+
+      // Si ya existe una fila con la misma descripción, se pisa con
+      // los datos copiados; las demás se agregan como filas nuevas.
+      const normalizar = (texto) =>
+        String(texto || "")
+          .trim()
+          .toLowerCase();
+
+      const filasResultantes = [...gastos];
+
+      const yaPisadas = new Set();
+
+      let actualizados = 0;
+
+      let agregados = 0;
+
+      for (const copia of nuevasFilas) {
+        const indice =
+          filasResultantes.findIndex(
+            (fila) =>
+              !yaPisadas.has(fila.id) &&
+              normalizar(
+                fila.descripcion
+              ) ===
+                normalizar(
+                  copia.descripcion
+                )
+          );
+
+        if (indice === -1) {
+          filasResultantes.push(copia);
+
+          // evita que otra copia con la misma descripción la pise
+          yaPisadas.add(copia.id);
+
+          agregados++;
+
+          continue;
+        }
+
+        const existente =
+          filasResultantes[indice];
+
+        yaPisadas.add(existente.id);
+
+        filasResultantes[indice] = {
+          ...existente,
+
+          fecha: copia.fecha,
+          descripcion: copia.descripcion,
+          categoriaId: copia.categoriaId,
+          cuotaActual: copia.cuotaActual,
+          cuotasTotales:
+            copia.cuotasTotales,
+          monto: copia.monto,
+          observaciones:
+            copia.observaciones,
+
+          modificado: true,
+        };
+
+        actualizados++;
+      }
+
+      setGastos(filasResultantes);
+
+      setError("");
+
+      const cantidad = nuevasFilas.length;
+
+      const detalle =
+        actualizados > 0
+          ? ` (${agregados} nuevo${
+              agregados === 1 ? "" : "s"
+            } y ${actualizados} actualizado${
+              actualizados === 1 ? "" : "s"
+            })`
+          : "";
+
+      const aviso =
+        cuotasFinalizadas > 0
+          ? ` (${cuotasFinalizadas} cuota${
+              cuotasFinalizadas === 1
+                ? " ya finalizada no se copió"
+                : "s ya finalizadas no se copiaron"
+            })`
+          : "";
+
+      setMensaje(
+        `Se copiaron ${cantidad} gasto${
+          cantidad === 1 ? "" : "s"
+        } de ${
+          nombresMeses[mesOrigen - 1]
+        } ${anioOrigen}${detalle}${aviso}. Revisalos y tocá "Guardar cambios".`
+      );
+
+      setModalCopia(false);
+    } catch (error) {
+      setErrorCopia(
+        error.message ||
+          "No se pudieron copiar los gastos"
+      );
+    } finally {
+      setCopiando(false);
+    }
+  };
 
   // ============================
   // AGREGAR FILA
@@ -740,6 +1029,16 @@ const Movimientos = () => {
 
             <button
               type="button"
+              className="boton-secundario"
+              onClick={
+                abrirModalCopia
+              }
+            >
+              Copiar de otro mes
+            </button>
+
+            <button
+              type="button"
               className="boton-agregar"
               onClick={
                 agregarFila
@@ -771,6 +1070,16 @@ const Movimientos = () => {
               }
             >
               + Agregar primer gasto
+            </button>
+
+            <button
+              type="button"
+              className="boton-secundario"
+              onClick={
+                abrirModalCopia
+              }
+            >
+              Copiar de otro mes
             </button>
 
           </div>
@@ -1251,6 +1560,179 @@ const Movimientos = () => {
                   {guardandoCategoria
                     ? "Guardando..."
                     : "Guardar"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
+
+
+      {/* MODAL COPIAR DE OTRO MES */}
+
+      {modalCopia && (
+
+        <div className="modal-overlay">
+
+          <div className="modal">
+
+            <div className="modal-header">
+
+              <div>
+
+                <span className="modal-label">
+                  COPIAR GASTOS
+                </span>
+
+                <h2>
+                  Copiar de otro mes
+                </h2>
+
+              </div>
+
+              <button
+                type="button"
+                className="modal-cerrar"
+                onClick={
+                  cerrarModalCopia
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+
+            <p className="modal-ayuda">
+              Se traen todos los gastos de
+              este origen del mes elegido, a{" "}
+              {nombresMeses[mes - 1]} {anio}.
+              Si ya hay un gasto con la misma
+              descripción, se actualiza con los
+              datos del mes elegido. Podés
+              revisarlos y editarlos antes de
+              guardar.
+            </p>
+
+
+            <form
+              onSubmit={
+                handleCopiarGastos
+              }
+            >
+
+              <div className="fila-selectores">
+
+                <div>
+
+                  <label
+                    htmlFor="mesOrigen"
+                    className="campo-label"
+                  >
+                    Mes
+                  </label>
+
+                  <select
+                    id="mesOrigen"
+                    className="campo-input"
+                    value={mesOrigen}
+                    onChange={(event) =>
+                      setMesOrigen(
+                        Number(
+                          event.target.value
+                        )
+                      )
+                    }
+                  >
+                    {nombresMeses.map(
+                      (nombre, indice) => (
+                        <option
+                          key={nombre}
+                          value={indice + 1}
+                        >
+                          {nombre}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                </div>
+
+                <div>
+
+                  <label
+                    htmlFor="anioOrigen"
+                    className="campo-label"
+                  >
+                    Año
+                  </label>
+
+                  <select
+                    id="anioOrigen"
+                    className="campo-input"
+                    value={anioOrigen}
+                    onChange={(event) =>
+                      setAnioOrigen(
+                        Number(
+                          event.target.value
+                        )
+                      )
+                    }
+                  >
+                    {[0, 1, 2, 3, 4, 5].map(
+                      (resta) => (
+                        <option
+                          key={resta}
+                          value={
+                            anio + 1 - resta
+                          }
+                        >
+                          {anio + 1 - resta}
+                        </option>
+                      )
+                    )}
+                  </select>
+
+                </div>
+
+              </div>
+
+
+              {errorCopia && (
+
+                <p className="modal-error">
+                  {errorCopia}
+                </p>
+
+              )}
+
+
+              <div className="modal-acciones">
+
+                <button
+                  type="button"
+                  className="boton-cancelar"
+                  onClick={
+                    cerrarModalCopia
+                  }
+                  disabled={copiando}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  className="boton-guardar"
+                  disabled={copiando}
+                >
+                  {copiando
+                    ? "Copiando..."
+                    : "Copiar gastos"}
                 </button>
 
               </div>

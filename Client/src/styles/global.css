@@ -529,3 +529,28 @@ a:focus-visible {
 .campo-password input::-ms-clear {
   display: none;
 }
+
+
+/* =========================
+   MODAL: ayuda y selectores
+========================= */
+
+.modal-ayuda {
+  margin: -8px 0 20px;
+
+  color: var(--texto-suave);
+
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.fila-selectores {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+}
+
+.campo-input option {
+  background: var(--superficie-2);
+  color: var(--texto);
+}
