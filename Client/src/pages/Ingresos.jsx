@@ -18,6 +18,7 @@ import {
 } from "../services/api";
 
 import { emparejarPorDescripcion } from "../utils/copiarGastos";
+import { obtenerFechaSugerida } from "../utils/fechas";
 
 const nombresMeses = [
   "Enero",
@@ -40,24 +41,6 @@ const formatearDinero = (valor) => {
     currency: "ARS",
     maximumFractionDigits: 0,
   }).format(valor);
-};
-
-// Fecha sugerida para un ingreso nuevo: siempre dentro del mes que se
-// está viendo. Usa el día de hoy (según el dispositivo, no UTC); si el
-// mes visto tiene menos días, se ajusta al último día.
-const obtenerFechaSugerida = (anio, mes) => {
-  const diasDelMes = new Date(anio, mes, 0).getDate();
-
-  const dia = Math.min(
-    new Date().getDate(),
-    diasDelMes
-  );
-
-  return [
-    anio,
-    String(mes).padStart(2, "0"),
-    String(dia).padStart(2, "0"),
-  ].join("-");
 };
 
 const Ingresos = () => {

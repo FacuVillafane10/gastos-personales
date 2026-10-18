@@ -22,6 +22,8 @@ import {
   generarCopias,
 } from "../utils/copiarGastos";
 
+import { obtenerFechaSugerida } from "../utils/fechas";
+
 const nombresMeses = [
   "Enero",
   "Febrero",
@@ -378,19 +380,11 @@ const Movimientos = () => {
   // ============================
 
   const agregarFila = () => {
-    // Fecha de hoy según el dispositivo (no UTC)
-    const hoy = new Date();
-
-    const fechaHoy = [
-      hoy.getFullYear(),
-      String(hoy.getMonth() + 1).padStart(2, "0"),
-      String(hoy.getDate()).padStart(2, "0"),
-    ].join("-");
-
     const nuevaFila = {
       id: crypto.randomUUID(),
 
-      fecha: fechaHoy,
+      // Dentro del mes que se está viendo
+      fecha: obtenerFechaSugerida(anio, mes),
 
       descripcion: "",
 
