@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CampoPassword from "../components/CampoPassword";
 import { useNavigate } from "react-router";
 import "../styles/auth.css";
 import {
@@ -104,10 +105,8 @@ const Login = () => {
               Contraseña
             </label>
 
-            <input
+            <CampoPassword
               id="password"
-              type="password"
-              className="campo-input"
               value={password}
               autoComplete="current-password"
               onChange={(event) =>

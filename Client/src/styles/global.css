@@ -475,3 +475,57 @@ a:focus-visible {
     font-size: 16px;
   }
 }
+
+
+/* =========================
+   CAMPO DE CONTRASEÑA (ojito)
+========================= */
+
+.campo-password {
+  position: relative;
+
+  display: block;
+}
+
+.campo-password .campo-input {
+  padding-right: 48px;
+}
+
+.boton-ver-password {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+  color: var(--texto-tenue);
+
+  transform: translateY(-50%);
+
+  cursor: pointer;
+}
+
+.boton-ver-password:hover {
+  color: var(--verde);
+}
+
+.boton-ver-password[aria-pressed="true"] {
+  color: var(--azul);
+}
+
+/* ocultar el ojito propio de Edge para no duplicarlo */
+.campo-password input::-ms-reveal,
+.campo-password input::-ms-clear {
+  display: none;
+}

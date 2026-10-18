@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CampoPassword from "../components/CampoPassword";
 import "../styles/auth.css";
 import {
   Link,
@@ -175,10 +176,8 @@ const Registro = () => {
               Contraseña
             </label>
 
-            <input
+            <CampoPassword
               id="password"
-              type="password"
-              className="campo-input"
               value={password}
               autoComplete="new-password"
               onChange={(event) =>
@@ -200,10 +199,8 @@ const Registro = () => {
               Repetir contraseña
             </label>
 
-            <input
+            <CampoPassword
               id="repetirPassword"
-              type="password"
-              className="campo-input"
               value={repetirPassword}
               autoComplete="new-password"
               onChange={(event) =>

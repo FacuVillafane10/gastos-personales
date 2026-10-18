@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CampoPassword from "../components/CampoPassword";
 
 import {
   Link,
@@ -170,10 +171,8 @@ const RestablecerPassword = () => {
                 Nueva contraseña
               </label>
 
-              <input
+              <CampoPassword
                 id="passwordNueva"
-                type="password"
-                className="campo-input"
                 value={passwordNueva}
                 autoComplete="new-password"
                 onChange={(event) =>
@@ -195,10 +194,8 @@ const RestablecerPassword = () => {
                 Repetir nueva contraseña
               </label>
 
-              <input
+              <CampoPassword
                 id="repetirPassword"
-                type="password"
-                className="campo-input"
                 value={repetirPassword}
                 autoComplete="new-password"
                 onChange={(event) =>
