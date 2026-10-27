@@ -77,7 +77,89 @@ const TABLAS = [
   },
 ];
 
+// El nombre de un origen o categoría debe ser único por usuario, no entre
+// todos los usuarios. Algunas bases tenían UNIQUE(nombre) global: se quita
+// y se deja UNIQUE(usuario_id, nombre).
+const sqlUnicidadPorUsuario = (tabla) => `
+  DO $$
+  DECLARE
+    fila record;
+    col_nombre smallint;
+    col_usuario smallint;
+  BEGIN
+    SELECT attnum INTO col_nombre
+    FROM pg_attribute
+    WHERE attrelid = '${tabla}'::regclass AND attname = 'nombre';
+
+    SELECT attnum INTO col_usuario
+    FROM pg_attribute
+    WHERE attrelid = '${tabla}'::regclass AND attname = 'usuario_id';
+
+    -- Restricciones UNIQUE solo sobre "nombre"
+    FOR fila IN
+      SELECT conname
+      FROM pg_constraint
+      WHERE conrelid = '${tabla}'::regclass
+        AND contype = 'u'
+        AND conkey = ARRAY[col_nombre]
+    LOOP
+      EXECUTE format(
+        'ALTER TABLE ${tabla} DROP CONSTRAINT %I',
+        fila.conname
+      );
+    END LOOP;
+
+    -- Índices únicos sueltos solo sobre "nombre"
+    FOR fila IN
+      SELECT i.indexrelid::regclass::text AS indice
+      FROM pg_index i
+      WHERE i.indrelid = '${tabla}'::regclass
+        AND i.indisunique
+        AND NOT i.indisprimary
+        AND i.indnatts = 1
+        AND i.indkey[0] = col_nombre
+        AND NOT EXISTS (
+          SELECT 1 FROM pg_constraint c
+          WHERE c.conindid = i.indexrelid
+        )
+    LOOP
+      EXECUTE format('DROP INDEX %s', fila.indice);
+    END LOOP;
+
+    -- Unicidad por usuario, si todavía no existe
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_index i
+      WHERE i.indrelid = '${tabla}'::regclass
+        AND i.indisunique
+        AND i.indnatts = 2
+        AND (
+          (i.indkey[0] = col_usuario AND i.indkey[1] = col_nombre)
+          OR (i.indkey[0] = col_nombre AND i.indkey[1] = col_usuario)
+        )
+    ) THEN
+      EXECUTE 'CREATE UNIQUE INDEX ux_${tabla}_usuario_nombre
+        ON ${tabla} (usuario_id, nombre)';
+    END IF;
+  END $$;
+`;
+
+const corregirUnicidad = async () => {
+  for (const tabla of ["origenes_gasto", "categorias"]) {
+    try {
+      await pool.query(sqlUnicidadPorUsuario(tabla));
+    } catch (error) {
+      console.error(
+        `❌ No se pudo ajustar la unicidad de ${tabla}:`,
+        error.message
+      );
+    }
+  }
+};
+
 export const ejecutarMigraciones = async () => {
+  await corregirUnicidad();
+
   for (const tabla of TABLAS) {
     try {
       await pool.query(tabla.sql(true));
