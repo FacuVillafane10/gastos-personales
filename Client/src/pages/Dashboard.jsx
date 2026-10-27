@@ -166,31 +166,6 @@ const Dashboard = () => {
     cargarResumen();
   }, [anio, mes]);
 
-  // Categorías activas, ordenadas por id: definen el color de cada una
-  const [idsCategorias, setIdsCategorias] =
-    useState([]);
-
-  useEffect(() => {
-    const cargarCategorias = async () => {
-      try {
-        const data = await obtenerCategorias();
-
-        setIdsCategorias(
-          data
-            .map((categoria) => categoria.id)
-            .sort((a, b) => a - b)
-        );
-      } catch (error) {
-        console.error(
-          "No se pudieron obtener las categorías",
-          error
-        );
-      }
-    };
-
-    cargarCategorias();
-  }, []);
-
  useEffect(() => {
   const cargarUsuario = async () => {
     try {
@@ -733,7 +708,6 @@ const handleCerrarSesion = async () => {
 
           <GastosPorCategoria
             categorias={resumen.categorias}
-            idsCategorias={idsCategorias}
             totalGeneral={resumen.totalGeneral}
             mesAnterior={resumen.mesAnterior}
             nombreMesAnterior={

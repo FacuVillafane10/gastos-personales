@@ -1,59 +1,4 @@
-import { useRef, useState } from "react";
-
 import "../styles/graficos.css";
-
-const MAX_SLOTS = 8;
-
-// Arma las entradas del gráfico. El color sigue a la categoría (según su
-// posición entre las categorías activas, ordenadas por id), no a su monto:
-// así una categoría conserva su color al cambiar de mes.
-const armarEntradas = (categorias, idsCategorias) => {
-  const entradas = [];
-
-  let otras = null;
-
-  for (const categoria of categorias) {
-    if (categoria.id === null) {
-      entradas.push({
-        clave: "sin-categoria",
-        nombre: "Sin categoría",
-        total: categoria.total,
-        color: "var(--gris-sin)",
-        orden: 100,
-      });
-
-      continue;
-    }
-
-    const slot = idsCategorias.indexOf(categoria.id);
-
-    if (slot === -1 || slot >= MAX_SLOTS) {
-      otras = {
-        clave: "otras",
-        nombre: "Otras categorías",
-        total: (otras?.total || 0) + categoria.total,
-        color: "var(--gris-otras)",
-        orden: 101,
-      };
-
-      continue;
-    }
-
-    entradas.push({
-      clave: `cat-${categoria.id}`,
-      nombre: categoria.nombre,
-      total: categoria.total,
-      color: `var(--serie-${slot + 1})`,
-      orden: slot,
-    });
-  }
-
-  if (otras) {
-    entradas.push(otras);
-  }
-
-  return entradas;
-};
 
 const formatearPorcentaje = (parte, total) => {
   if (total <= 0) return "0%";
@@ -65,41 +10,29 @@ const formatearPorcentaje = (parte, total) => {
     : `${Math.round(valor)}%`;
 };
 
+// Una barra por categoría, de mayor a menor gasto. Se listan todas
+// las categorías con gastos en el mes, sin agrupar ninguna.
 const GastosPorCategoria = ({
   categorias,
-  idsCategorias,
   totalGeneral,
   mesAnterior,
   nombreMesAnterior,
   periodo,
   formatearDinero,
 }) => {
-  const contenedor = useRef(null);
+  const filas = [...(categorias || [])]
+    .filter((categoria) => categoria.total > 0)
+    .sort((a, b) => b.total - a.total);
 
-  const [activa, setActiva] = useState(null);
-
-  const [tooltip, setTooltip] = useState(null);
-
-  const entradas = armarEntradas(
-    categorias || [],
-    idsCategorias || []
-  );
-
-  const suma = entradas.reduce(
-    (acumulado, entrada) =>
-      acumulado + entrada.total,
+  const suma = filas.reduce(
+    (acumulado, categoria) =>
+      acumulado + categoria.total,
     0
   );
 
-  // Barra: orden fijo por color (garantiza vecinos bien distinguibles).
-  // Lista: de mayor a menor gasto.
-  const entradasBarra = [...entradas].sort(
-    (a, b) => a.orden - b.orden
-  );
-
-  const entradasLista = [...entradas].sort(
-    (a, b) => b.total - a.total
-  );
+  const maximo = filas.length
+    ? filas[0].total
+    : 0;
 
   // ---------- comparación con el mes anterior ----------
 
@@ -132,35 +65,6 @@ const GastosPorCategoria = ({
       };
     }
   }
-
-  // ---------- tooltip ----------
-
-  const mostrarTooltip = (elemento, entrada, evento) => {
-    const cajaContenedor =
-      contenedor.current.getBoundingClientRect();
-
-    const cajaElemento =
-      elemento.getBoundingClientRect();
-
-    setActiva(entrada.clave);
-
-    setTooltip({
-      entrada,
-
-      x: evento
-        ? evento.clientX - cajaContenedor.left
-        : cajaElemento.left +
-          cajaElemento.width / 2 -
-          cajaContenedor.left,
-
-      ancho: cajaContenedor.width,
-    });
-  };
-
-  const ocultarTooltip = () => {
-    setActiva(null);
-    setTooltip(null);
-  };
 
   // ---------- render ----------
 
@@ -210,7 +114,7 @@ const GastosPorCategoria = ({
       </div>
 
 
-      {entradas.length === 0 || suma <= 0 ? (
+      {filas.length === 0 ? (
 
         <p className="sin-datos">
           Todavía no hay gastos cargados este mes.
@@ -218,152 +122,83 @@ const GastosPorCategoria = ({
 
       ) : (
 
-        <>
+        <ul
+          className="lista-categorias"
+          aria-label="Gastos por categoría"
+        >
 
-          <div
-            className="barra-apilada"
-            ref={contenedor}
-            role="group"
-            aria-label="Gastos por categoría"
-          >
+          {filas.map((categoria) => {
+            const sinCategoria =
+              categoria.id === null;
 
-            {entradasBarra.map((entrada) => (
+            return (
 
-              <button
-                key={entrada.clave}
-                type="button"
-                className={`segmento ${
-                  activa && activa !== entrada.clave
-                    ? "segmento-atenuado"
-                    : ""
-                }`}
-                style={{
-                  flexGrow: entrada.total,
-                  "--color": entrada.color,
-                }}
-                aria-label={`${entrada.nombre}: ${formatearDinero(
-                  entrada.total
+              <li
+                key={
+                  sinCategoria
+                    ? "sin-categoria"
+                    : categoria.id
+                }
+                title={`${
+                  categoria.nombre
+                }: ${formatearDinero(
+                  categoria.total
                 )} (${formatearPorcentaje(
-                  entrada.total,
+                  categoria.total,
                   suma
                 )})`}
-                onPointerMove={(evento) =>
-                  mostrarTooltip(
-                    evento.currentTarget,
-                    entrada,
-                    evento
-                  )
-                }
-                onPointerLeave={ocultarTooltip}
-                onFocus={(evento) =>
-                  mostrarTooltip(
-                    evento.currentTarget,
-                    entrada
-                  )
-                }
-                onBlur={ocultarTooltip}
               >
 
-                <span className="segmento-marca" />
+                <div className="categoria-texto">
 
-              </button>
+                  <span className="categoria-nombre">
+                    {categoria.nombre}
+                  </span>
 
-            ))}
+                  <span className="categoria-monto">
+                    {formatearDinero(
+                      categoria.total
+                    )}
+                  </span>
 
-            {tooltip && (
+                  <span className="categoria-porcentaje">
+                    {formatearPorcentaje(
+                      categoria.total,
+                      suma
+                    )}
+                  </span>
 
-              <div
-                className="grafico-tooltip"
-                style={{
-                  left: Math.min(
-                    Math.max(tooltip.x, 80),
-                    tooltip.ancho - 80
-                  ),
-                }}
-                role="status"
-              >
+                </div>
 
-                <strong>
-                  {formatearDinero(
-                    tooltip.entrada.total
-                  )}
-                </strong>
+                <span
+                  className="categoria-pista"
+                  aria-hidden="true"
+                >
 
-                <span>
-
-                  <i
-                    className="clave-linea"
+                  <span
+                    className={`categoria-barra ${
+                      sinCategoria
+                        ? "barra-sin-categoria"
+                        : ""
+                    }`}
                     style={{
-                      "--color": tooltip.entrada.color,
+                      width: `${Math.max(
+                        (categoria.total /
+                          maximo) *
+                          100,
+                        1.5
+                      )}%`,
                     }}
                   />
 
-                  {tooltip.entrada.nombre} ·{" "}
-                  {formatearPorcentaje(
-                    tooltip.entrada.total,
-                    suma
-                  )}
-
-                </span>
-
-              </div>
-
-            )}
-
-          </div>
-
-
-          <ul className="lista-categorias">
-
-            {entradasLista.map((entrada) => (
-
-              <li
-                key={entrada.clave}
-                className={
-                  activa && activa !== entrada.clave
-                    ? "fila-atenuada"
-                    : ""
-                }
-                onPointerEnter={() =>
-                  setActiva(entrada.clave)
-                }
-                onPointerLeave={() =>
-                  setActiva(null)
-                }
-              >
-
-                <i
-                  className="clave-cuadro"
-                  style={{
-                    "--color": entrada.color,
-                  }}
-                />
-
-                <span
-                  className="categoria-nombre"
-                  title={entrada.nombre}
-                >
-                  {entrada.nombre}
-                </span>
-
-                <span className="categoria-monto">
-                  {formatearDinero(entrada.total)}
-                </span>
-
-                <span className="categoria-porcentaje">
-                  {formatearPorcentaje(
-                    entrada.total,
-                    suma
-                  )}
                 </span>
 
               </li>
 
-            ))}
+            );
+          })}
 
-          </ul>
-
-        </>
+        </ul>
 
       )}
 
