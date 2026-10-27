@@ -3,56 +3,11 @@ import {
   guardarCambiosIngresos,
 } from "../repositories/ingreso.repository.js";
 
-const MAX_CAMBIOS = 500;
-
-const validarPeriodo = (anio, mes) => {
-  const anioNumero = Number(anio);
-  const mesNumero = Number(mes);
-
-  if (
-    !Number.isInteger(anioNumero) ||
-    anioNumero < 1900 ||
-    anioNumero > 2200
-  ) {
-    throw new Error("El año es inválido");
-  }
-
-  if (
-    !Number.isInteger(mesNumero) ||
-    mesNumero < 1 ||
-    mesNumero > 12
-  ) {
-    throw new Error("El mes es inválido");
-  }
-
-  return {
-    anio: anioNumero,
-    mes: mesNumero,
-  };
-};
-
-const fechaValida = (texto) => {
-  if (
-    typeof texto !== "string" ||
-    !/^\d{4}-\d{2}-\d{2}$/.test(texto)
-  ) {
-    return false;
-  }
-
-  const [anio, mes, dia] = texto
-    .split("-")
-    .map(Number);
-
-  const fecha = new Date(
-    Date.UTC(anio, mes - 1, dia)
-  );
-
-  return (
-    fecha.getUTCFullYear() === anio &&
-    fecha.getUTCMonth() === mes - 1 &&
-    fecha.getUTCDate() === dia
-  );
-};
+import {
+  fechaValida,
+  normalizarLote,
+  validarPeriodo,
+} from "./validaciones.js";
 
 const normalizarIngreso = (
   ingreso,
@@ -156,55 +111,8 @@ export const guardarCambios = async (
   usuarioId,
   cambios
 ) => {
-  const {
-    crear = [],
-    actualizar = [],
-    eliminar = [],
-  } = cambios || {};
-
-  if (
-    !Array.isArray(crear) ||
-    !Array.isArray(actualizar) ||
-    !Array.isArray(eliminar)
-  ) {
-    throw new Error("Los cambios son inválidos");
-  }
-
-  if (
-    crear.length > MAX_CAMBIOS ||
-    actualizar.length > MAX_CAMBIOS ||
-    eliminar.length > MAX_CAMBIOS
-  ) {
-    throw new Error(
-      `No se pueden guardar más de ${MAX_CAMBIOS} cambios a la vez`
-    );
-  }
-
   return await guardarCambiosIngresos(
     usuarioId,
-    {
-      crear: crear.map((ingreso) =>
-        normalizarIngreso(ingreso)
-      ),
-
-      actualizar: actualizar.map((ingreso) =>
-        normalizarIngreso(ingreso, true)
-      ),
-
-      eliminar: eliminar.map((ingresoId) => {
-        const numero = Number(ingresoId);
-
-        if (
-          !Number.isInteger(numero) ||
-          numero <= 0
-        ) {
-          throw new Error(
-            "Existe un ID inválido para eliminar"
-          );
-        }
-
-        return numero;
-      }),
-    }
+    normalizarLote(cambios, normalizarIngreso)
   );
 };

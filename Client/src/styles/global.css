@@ -554,3 +554,60 @@ a:focus-visible {
   background: var(--superficie-2);
   color: var(--texto);
 }
+
+
+/* =========================
+   FORMULARIO GASTO RÁPIDO
+========================= */
+
+.gasto-rapido-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.campo-importe {
+  font-family: var(--fuente-mono);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.gasto-rapido-nota {
+  margin: -6px 0 0;
+}
+
+@media (max-width: 480px) {
+  .gasto-rapido-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .gasto-rapido-acciones button {
+    width: 100%;
+  }
+
+  .modal .fila-selectores {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================
+   MODAL CAMBIOS SIN GUARDAR
+========================= */
+
+.boton-descartar:hover:not(:disabled) {
+  border-color: rgba(255, 107, 122, 0.55);
+
+  background: var(--peligro-fondo);
+  color: var(--peligro);
+}
+
+@media (max-width: 480px) {
+  .confirmar-salida-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .confirmar-salida-acciones button {
+    width: 100%;
+  }
+}

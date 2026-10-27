@@ -162,7 +162,7 @@ export const iniciarSesion = async (
     process.env.JWT_SECRET,
     {
       subject: String(usuario.id),
-      expiresIn: "8h",
+      expiresIn: "30d",
       algorithm: "HS256",
     }
   );

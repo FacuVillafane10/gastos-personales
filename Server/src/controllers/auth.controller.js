@@ -115,8 +115,9 @@ export const login = async (
       token,
       {
         ...opcionesCookieBase,
+        // 30 días, igual que el vencimiento del token
         maxAge:
-          8 * 60 * 60 * 1000,
+          30 * 24 * 60 * 60 * 1000,
       }
     );
 

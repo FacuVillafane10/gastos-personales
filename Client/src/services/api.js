@@ -45,6 +45,17 @@ const apiFetch = async (
     data = await response.json();
   }
 
+  // Sesión vencida en una pantalla privada: volver al login.
+  // Las rutas /auth/* manejan su propio 401 (login, verificación).
+  if (
+    response.status === 401 &&
+    !ruta.startsWith("/auth/")
+  ) {
+    window.location.assign(
+      "/login?expirada=1"
+    );
+  }
+
   if (!response.ok) {
     const error = new Error(
       data?.error ||
@@ -241,6 +252,51 @@ export const obtenerOrigen =
   };
 
 
+// LISTAR ORÍGENES ACTIVOS
+
+export const obtenerOrigenes =
+  async () => {
+    return await apiFetch(
+      "/origenes"
+    );
+  };
+
+
+// RENOMBRAR ORIGEN
+
+export const actualizarOrigen =
+  async (
+    id,
+    nombre
+  ) => {
+    return await apiFetch(
+      `/origenes/${id}`,
+      {
+        method: "PUT",
+
+        body: JSON.stringify({
+          nombre,
+        }),
+      }
+    );
+  };
+
+
+// ELIMINAR (DESACTIVAR) ORIGEN
+
+export const eliminarOrigen =
+  async (
+    id
+  ) => {
+    return await apiFetch(
+      `/origenes/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+  };
+
+
 // ===================================
 // GASTOS
 // ===================================
@@ -314,6 +370,41 @@ export const crearCategoria =
     );
   };
 
+
+// RENOMBRAR CATEGORÍA
+
+export const actualizarCategoria =
+  async (
+    id,
+    nombre
+  ) => {
+    return await apiFetch(
+      `/categorias/${id}`,
+      {
+        method: "PUT",
+
+        body: JSON.stringify({
+          nombre,
+        }),
+      }
+    );
+  };
+
+
+// ELIMINAR (DESACTIVAR) CATEGORÍA
+
+export const eliminarCategoria =
+  async (
+    id
+  ) => {
+    return await apiFetch(
+      `/categorias/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+  };
+
 // ===================================
 // INGRESOS
 // ===================================
@@ -340,6 +431,43 @@ export const guardarCambiosIngresos =
   ) => {
     return await apiFetch(
       "/ingresos/cambios",
+      {
+        method: "POST",
+
+        body: JSON.stringify(
+          cambios
+        ),
+      }
+    );
+  };
+
+
+// ===================================
+// AHORROS
+// ===================================
+
+
+// OBTENER AHORROS DEL MES (y acumulado anterior)
+
+export const obtenerAhorrosMensuales =
+  async (
+    anio,
+    mes
+  ) => {
+    return await apiFetch(
+      `/ahorros?anio=${anio}&mes=${mes}`
+    );
+  };
+
+
+// GUARDAR CAMBIOS DE AHORROS
+
+export const guardarCambiosAhorros =
+  async (
+    cambios
+  ) => {
+    return await apiFetch(
+      "/ahorros/cambios",
       {
         method: "POST",
 

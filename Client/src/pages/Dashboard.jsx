@@ -23,6 +23,8 @@ import {
 } from "../utils/copiarGastos";
 
 import CuotasPendientes from "../components/CuotasPendientes";
+import GastoRapido from "../components/GastoRapido";
+import { formatearMonto } from "../utils/moneda";
 import GastosPorCategoria from "../components/GastosPorCategoria";
 
 const nombresMeses = [
@@ -139,6 +141,9 @@ const Dashboard = () => {
 
   const [avisoCopia, setAvisoCopia] =
     useState("");
+
+  const [modalGastoRapido, setModalGastoRapido] =
+    useState(false);
 
   // =========================
   // CARGAR RESUMEN
@@ -424,9 +429,50 @@ const handleCerrarSesion = async () => {
   const totalIngresos =
     resumen?.totalIngresos ?? 0;
 
+  // Lo ahorrado en pesos se aparta del disponible (un retiro lo devuelve)
+  const ahorroMesPesos =
+    resumen?.ahorros?.mes?.ARS ?? 0;
+
+  const ahorroMesDolares =
+    resumen?.ahorros?.mes?.USD ?? 0;
+
+  // Pesos del mes usados para comprar dólares (salen del disponible)
+  const pesosCompraMes =
+    resumen?.ahorros?.pesosCompraMes ?? 0;
+
+  // Todo lo apartado en pesos este mes: ahorro en pesos + compras de US$
+  const apartadoMesPesos =
+    ahorroMesPesos + pesosCompraMes;
+
+  const acumuladoAhorro =
+    resumen?.ahorros?.acumulado ?? {
+      ARS: 0,
+      USD: 0,
+    };
+
+  // "Este mes: +$270.000 · −US$ 200,00" (solo las monedas que se movieron)
+  const conSigno = (valor, moneda) =>
+    `${valor > 0 ? "+" : ""}${formatearMonto(
+      valor,
+      moneda
+    )}`;
+
+  const movimientosAhorroMes = [
+    ahorroMesPesos !== 0 &&
+      conSigno(ahorroMesPesos, "ARS"),
+    ahorroMesDolares !== 0 &&
+      conSigno(ahorroMesDolares, "USD"),
+  ].filter(Boolean);
+
+  const textoAhorroMes =
+    movimientosAhorroMes.length > 0
+      ? `Este mes: ${movimientosAhorroMes.join(" · ")} · Total al cierre:`
+      : "Sin movimientos este mes · Total al cierre:";
+
   const balance =
     totalIngresos -
-    (resumen?.totalGeneral ?? 0);
+    (resumen?.totalGeneral ?? 0) -
+    apartadoMesPesos;
 
   // =========================
   // NAVEGACIÓN ENTRE MESES
@@ -532,6 +578,13 @@ const handleCerrarSesion = async () => {
     )}
 
     <Link
+      to={`/administrar?anio=${anio}&mes=${mes}`}
+      className="boton-cuenta"
+    >
+      Orígenes y categorías
+    </Link>
+
+    <Link
       to="/cambiar-password"
       className="boton-cuenta"
     >
@@ -578,6 +631,41 @@ const handleCerrarSesion = async () => {
       </section>
 
 
+      {/* GASTO RÁPIDO */}
+
+      {resumen && (
+        <>
+
+          <div className="acciones-rapidas">
+
+            <button
+              type="button"
+              className="boton-agregar boton-gasto-rapido"
+              onClick={() =>
+                setModalGastoRapido(true)
+              }
+            >
+              + Gasto rápido
+            </button>
+
+          </div>
+
+          {/* En el celular, siempre a mano */}
+          <button
+            type="button"
+            className="boton-flotante"
+            onClick={() =>
+              setModalGastoRapido(true)
+            }
+            aria-label="Cargar gasto rápido"
+          >
+            +
+          </button>
+
+        </>
+      )}
+
+
       {/* CARGANDO */}
 
       {cargando && (
@@ -615,7 +703,7 @@ const handleCerrarSesion = async () => {
           <section className="total-card">
 
             <span>
-              Balance del mes
+              Disponible del mes
             </span>
 
             <strong
@@ -658,78 +746,42 @@ const handleCerrarSesion = async () => {
 
               </div>
 
+              <div>
+
+                <small>
+                  Ahorros del mes
+                </small>
+
+                <b className="monto-ahorros">
+                  {formatearDinero(
+                    apartadoMesPesos
+                  )}
+                </b>
+
+                {pesosCompraMes > 0 && (
+                  <span className="monto-ahorros-usd">
+                    incluye{" "}
+                    {formatearDinero(pesosCompraMes)}{" "}
+                    en compra de US$
+                  </span>
+                )}
+
+                {ahorroMesDolares !== 0 && (
+                  <span className="monto-ahorros-usd">
+                    {ahorroMesDolares > 0 ? "+" : ""}
+                    {formatearMonto(
+                      ahorroMesDolares,
+                      "USD"
+                    )}{" "}
+                    en dólares
+                  </span>
+                )}
+
+              </div>
+
             </div>
 
           </section>
-
-
-          {/* ACCESO A INGRESOS */}
-
-          <button
-            type="button"
-            className="origen-card ingresos-card"
-            onClick={() =>
-              navigate(
-                `/ingresos?anio=${anio}&mes=${mes}`
-              )
-            }
-          >
-
-            <div>
-
-              <span className="origen-nombre">
-                Ingresos
-              </span>
-
-              <small>
-                Ver y cargar lo que entra
-              </small>
-
-            </div>
-
-            <div className="origen-total">
-
-              <strong>
-                {formatearDinero(
-                  totalIngresos
-                )}
-              </strong>
-
-              <span>
-                ›
-              </span>
-
-            </div>
-
-          </button>
-
-
-          {/* GASTOS POR CATEGORÍA */}
-
-          <GastosPorCategoria
-            categorias={resumen.categorias}
-            totalGeneral={resumen.totalGeneral}
-            mesAnterior={resumen.mesAnterior}
-            nombreMesAnterior={
-              resumen.mesAnterior
-                ? nombresMeses[
-                    resumen.mesAnterior.mes - 1
-                  ].toLowerCase()
-                : ""
-            }
-            periodo={`${nombresMeses[mes - 1]} ${anio}`}
-            formatearDinero={formatearDinero}
-          />
-
-
-          {/* CUOTAS PENDIENTES */}
-
-          <CuotasPendientes
-            cuotas={resumen.cuotasPendientes}
-            periodo={`${nombresMeses[mes - 1]} ${anio}`}
-            nombresMeses={nombresMeses}
-            formatearDinero={formatearDinero}
-          />
 
 
           {/* RESUMEN POR ORIGEN */}
@@ -833,7 +885,149 @@ const handleCerrarSesion = async () => {
 
           </section>
 
+
+          {/* ACCESO A INGRESOS */}
+
+          <button
+            type="button"
+            className="origen-card ingresos-card"
+            onClick={() =>
+              navigate(
+                `/ingresos?anio=${anio}&mes=${mes}`
+              )
+            }
+          >
+
+            <div>
+
+              <span className="origen-nombre">
+                Ingresos
+              </span>
+
+              <small>
+                Ver y cargar lo que entra
+              </small>
+
+            </div>
+
+            <div className="origen-total">
+
+              <strong>
+                {formatearDinero(
+                  totalIngresos
+                )}
+              </strong>
+
+              <span>
+                ›
+              </span>
+
+            </div>
+
+          </button>
+
+
+          {/* ACCESO A AHORROS */}
+
+          <button
+            type="button"
+            className="origen-card ahorros-card"
+            onClick={() =>
+              navigate(
+                `/ahorros?anio=${anio}&mes=${mes}`
+              )
+            }
+          >
+
+            <div>
+
+              <span className="origen-nombre">
+                Ahorros
+              </span>
+
+              <small>
+                {textoAhorroMes}
+              </small>
+
+            </div>
+
+            <div className="origen-total">
+
+              <strong className="ahorros-totales-card">
+                {formatearDinero(
+                  acumuladoAhorro.ARS
+                )}
+
+                {acumuladoAhorro.USD !== 0 && (
+                  <span className="ahorros-usd">
+                    {formatearMonto(
+                      acumuladoAhorro.USD,
+                      "USD"
+                    )}
+                  </span>
+                )}
+              </strong>
+
+              <span>
+                ›
+              </span>
+
+            </div>
+
+          </button>
+
+
+          {/* GASTOS POR CATEGORÍA */}
+
+          <GastosPorCategoria
+            categorias={resumen.categorias}
+            totalGeneral={resumen.totalGeneral}
+            mesAnterior={resumen.mesAnterior}
+            nombreMesAnterior={
+              resumen.mesAnterior
+                ? nombresMeses[
+                    resumen.mesAnterior.mes - 1
+                  ].toLowerCase()
+                : ""
+            }
+            periodo={`${nombresMeses[mes - 1]} ${anio}`}
+            formatearDinero={formatearDinero}
+          />
+
+
+          {/* CUOTAS PENDIENTES */}
+
+          <CuotasPendientes
+            cuotas={resumen.cuotasPendientes}
+            periodo={`${nombresMeses[mes - 1]} ${anio}`}
+            nombresMeses={nombresMeses}
+            formatearDinero={formatearDinero}
+          />
+
         </>
+      )}
+
+
+      {/* MODAL GASTO RÁPIDO */}
+
+      {modalGastoRapido && resumen && (
+        <GastoRapido
+          origenes={resumen.origenes}
+          anio={anio}
+          mes={mes}
+          onGuardado={({ mensaje, cerrar }) => {
+            setAvisoCopia(mensaje);
+
+            if (cerrar) {
+              setModalGastoRapido(false);
+            }
+
+            cargarResumen();
+          }}
+          onCerrar={() =>
+            setModalGastoRapido(false)
+          }
+        />
       )}
 
 

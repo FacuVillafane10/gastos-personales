@@ -1,14 +1,22 @@
 import { useState } from "react";
 import CampoPassword from "../components/CampoPassword";
-import { useNavigate } from "react-router";
+import {
+  Link,
+  useNavigate,
+  useSearchParams,
+} from "react-router";
 import "../styles/auth.css";
 import {
   iniciarSesion,
 } from "../services/api";
-import { Link } from "react-router";
 
 const Login = () => {
   const navigate = useNavigate();
+
+  const [searchParams] = useSearchParams();
+
+  const sesionExpirada =
+    searchParams.get("expirada") === "1";
 
   const [email, setEmail] =
     useState("");
@@ -65,6 +73,12 @@ const Login = () => {
           </p>
 
         </div>
+
+        {sesionExpirada && (
+          <p className="aviso-sesion">
+            Tu sesión venció, ingresá de nuevo.
+          </p>
+        )}
 
         <form
           onSubmit={handleSubmit}

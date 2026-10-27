@@ -12,6 +12,7 @@ import resumenRoutes from "./routes/resumen.routes.js";
 import gastoRoutes from "./routes/gasto.routes.js";
 import categoriaRoutes from "./routes/categoria.routes.js";
 import ingresoRoutes from "./routes/ingreso.routes.js";
+import ahorroRoutes from "./routes/ahorro.routes.js";
 import { ejecutarMigraciones } from "./database/migraciones.js";
 
 import {
@@ -76,6 +77,12 @@ app.use(
   "/api/ingresos",
   requerirAutenticacion,
   ingresoRoutes
+);
+
+app.use(
+  "/api/ahorros",
+  requerirAutenticacion,
+  ahorroRoutes
 );
 
 app.use(

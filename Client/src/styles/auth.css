@@ -234,3 +234,19 @@
     padding: 26px 18px;
   }
 }
+
+
+/* aviso de sesión vencida */
+.aviso-sesion {
+  margin: -10px 0 22px;
+
+  padding: 11px 13px;
+
+  border: 1px solid rgba(61, 165, 255, 0.35);
+  border-radius: 9px;
+
+  background: rgba(61, 165, 255, 0.08);
+  color: var(--texto);
+
+  font-size: 13px;
+}

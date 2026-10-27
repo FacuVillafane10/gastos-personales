@@ -1,0 +1,169 @@
+/* Ahorros: reutiliza la grilla de gastos, con 8 columnas
+   (agrega "Pesos pagados" para las compras de dólares). */
+
+.ahorro-totales {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  margin-bottom: 24px;
+}
+
+.ahorro-total-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  padding: 20px 22px;
+
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+
+  background: var(--superficie);
+}
+
+.ahorro-moneda {
+  color: var(--texto-suave);
+
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ahorro-total-card strong {
+  font-family: var(--fuente-mono);
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.ahorro-total-card small {
+  color: var(--texto-tenue);
+
+  font-size: 12px;
+}
+
+.ahorro-mes {
+  margin: 8px 0 0;
+
+  color: var(--verde);
+
+  font-family: var(--fuente-mono);
+  font-size: 13px;
+}
+
+.ahorro-mes-negativo {
+  color: var(--peligro);
+}
+
+/* los retiros se marcan con una barra a la izquierda */
+.tabla-gastos tr.fila-retiro {
+  box-shadow: inset 3px 0 0 var(--peligro);
+}
+
+.ahorro-compra {
+  margin: 2px 0 0;
+
+  color: var(--texto-suave);
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+}
+
+/* las compras de dólares se marcan en azul */
+.tabla-gastos tr.fila-compra {
+  box-shadow: inset 3px 0 0 var(--azul);
+}
+
+.sin-valor {
+  display: block;
+
+  padding: 10px;
+
+  color: var(--texto-tenue);
+}
+
+/* que "Compra US$" entre completo en la columna Tipo */
+.tabla-ahorros td:nth-child(2) select {
+  min-width: 140px;
+}
+
+.tabla-ahorros select:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .ahorro-totales {
+    grid-template-columns: 1fr;
+  }
+
+  /* orden en la tarjeta: fecha | importe, tipo | moneda,
+     pesos pagados (solo compras), descripción y observaciones */
+  .tabla-gastos.tabla-ahorros td:nth-child(1) {
+    order: 1;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(5) {
+    order: 2;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(2) {
+    order: 3;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(3) {
+    order: 4;
+    grid-column: auto;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(6) {
+    order: 5;
+    grid-column: 1 / -1;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(4) {
+    order: 6;
+    grid-column: 1 / -1;
+  }
+
+  /* en la grilla de gastos la 7.ª celda es el botón eliminar;
+     acá es "Observaciones" y el botón pasa a la 8.ª */
+  .tabla-gastos.tabla-ahorros td:nth-child(7) {
+    position: static;
+
+    order: 7;
+    grid-column: 1 / -1;
+  }
+
+  .tabla-gastos.tabla-ahorros td:nth-child(8) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .tabla-ahorros td:nth-child(2) select {
+    min-width: 0;
+  }
+
+  /* sin compra no hay pesos pagados: la celda no se muestra */
+  .tabla-gastos.tabla-ahorros td.celda-vacia {
+    display: none;
+  }
+
+  .tabla-gastos tr.fila-compra {
+    border-left: 3px solid var(--azul);
+
+    box-shadow: none;
+  }
+
+  .tabla-gastos tr.fila-retiro {
+    border-left: 3px solid var(--peligro);
+
+    box-shadow: none;
+  }
+}

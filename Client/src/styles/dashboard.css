@@ -541,3 +541,151 @@
     font-size: 15px;
   }
 }
+
+
+/* =========================
+   GASTO RÁPIDO
+========================= */
+
+.acciones-rapidas {
+  display: flex;
+  justify-content: center;
+
+  margin: -10px 0 28px;
+}
+
+.boton-gasto-rapido {
+  padding: 13px 26px;
+
+  font-size: 15px;
+}
+
+/* botón flotante: solo en el celular */
+.boton-flotante {
+  display: none;
+}
+
+.resumen {
+  margin-bottom: 30px;
+}
+
+@media (max-width: 600px) {
+  .acciones-rapidas {
+    display: none;
+  }
+
+  .boton-flotante {
+    position: fixed;
+    right: 18px;
+    bottom: calc(18px + env(safe-area-inset-bottom));
+    z-index: 50;
+
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    background: var(--degradado);
+    color: #04110b;
+
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1;
+
+    box-shadow:
+      0 10px 28px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(61, 165, 255, 0.35);
+
+    cursor: pointer;
+  }
+
+  .boton-flotante:active {
+    transform: scale(0.95);
+  }
+
+  /* que el botón no tape lo último de la pantalla */
+  .dashboard {
+    padding-bottom: 96px;
+  }
+}
+
+
+/* =========================
+   AHORROS
+========================= */
+
+.balance-detalle {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.monto-ahorros {
+  color: #c9a7ff;
+}
+
+.ingresos-card {
+  margin-bottom: 12px;
+}
+
+.ahorros-card {
+  margin-bottom: 30px;
+
+  border-color: rgba(201, 167, 255, 0.3);
+}
+
+.ahorros-totales-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+
+  color: #c9a7ff;
+}
+
+/* más específico que ".origen-total span" (la flecha) */
+.ahorros-card .origen-total .ahorros-usd {
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
+
+@media (max-width: 480px) {
+  .balance-detalle {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .balance-detalle div:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .resumen-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .resumen-acciones {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+/* más específico que ".total-card span" (las etiquetas en mayúsculas) */
+.total-card .monto-ahorros-usd {
+  margin: 0;
+
+  color: var(--texto-suave);
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}

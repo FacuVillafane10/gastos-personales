@@ -7,6 +7,8 @@ import {
 import Dashboard from "./pages/Dashboard";
 import Movimientos from "./pages/Movimientos";
 import Ingresos from "./pages/Ingresos";
+import Ahorros from "./pages/Ahorros";
+import Administrar from "./pages/Administrar";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import CambiarPassword from "./pages/CambiarPassword";
@@ -91,6 +93,30 @@ function App() {
         element={
           <RutaProtegida>
             <Ingresos />
+          </RutaProtegida>
+        }
+      />
+
+
+      {/* AHORROS - RUTA PRIVADA */}
+
+      <Route
+        path="/ahorros"
+        element={
+          <RutaProtegida>
+            <Ahorros />
+          </RutaProtegida>
+        }
+      />
+
+
+      {/* ORÍGENES Y CATEGORÍAS - RUTA PRIVADA */}
+
+      <Route
+        path="/administrar"
+        element={
+          <RutaProtegida>
+            <Administrar />
           </RutaProtegida>
         }
       />

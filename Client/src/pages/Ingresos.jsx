@@ -20,6 +20,9 @@ import {
 import { emparejarPorDescripcion } from "../utils/copiarGastos";
 import { obtenerFechaSugerida } from "../utils/fechas";
 
+import ConfirmarSalida from "../components/ConfirmarSalida";
+import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
+
 const nombresMeses = [
   "Enero",
   "Febrero",
@@ -277,7 +280,7 @@ const Ingresos = () => {
       ) {
         setMensaje("No hay cambios para guardar");
 
-        return;
+        return true;
       }
 
       setGuardando(true);
@@ -293,10 +296,51 @@ const Ingresos = () => {
       setMensaje(
         "Cambios guardados correctamente"
       );
+
+      return true;
     } catch (error) {
       setError(error.message);
+
+      return false;
     } finally {
       setGuardando(false);
+    }
+  };
+
+  // ============================
+  // SALIR CON CAMBIOS SIN GUARDAR
+  // ============================
+
+  const hayCambios =
+    ingresos.some(
+      (ingreso) => ingreso.modificado
+    ) || eliminados.length > 0;
+
+  useAvisoAlCerrar(hayCambios);
+
+  const [modalSalida, setModalSalida] =
+    useState(false);
+
+  const volver = () =>
+    navigate(`/?anio=${anio}&mes=${mes}`);
+
+  const intentarVolver = () => {
+    if (hayCambios) {
+      setModalSalida(true);
+
+      return;
+    }
+
+    volver();
+  };
+
+  const guardarYSalir = async () => {
+    const guardado = await guardarCambios();
+
+    setModalSalida(false);
+
+    if (guardado) {
+      volver();
     }
   };
 
@@ -488,11 +532,7 @@ const Ingresos = () => {
       <button
         type="button"
         className="boton-volver"
-        onClick={() =>
-          navigate(
-            `/?anio=${anio}&mes=${mes}`
-          )
-        }
+        onClick={intentarVolver}
       >
         ← Volver
       </button>
@@ -653,6 +693,7 @@ const Ingresos = () => {
                       <input
                         type="number"
                         min="0"
+                        inputMode="decimal"
                         step="0.01"
                         value={ingreso.monto}
                         placeholder="0"
@@ -753,6 +794,17 @@ const Ingresos = () => {
 
       </section>
 
+
+      {modalSalida && (
+        <ConfirmarSalida
+          guardando={guardando}
+          onGuardar={guardarYSalir}
+          onSalir={volver}
+          onCancelar={() =>
+            setModalSalida(false)
+          }
+        />
+      )}
 
       {modalCopia && (
 

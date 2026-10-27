@@ -24,6 +24,9 @@ import {
 
 import { obtenerFechaSugerida } from "../utils/fechas";
 
+import ConfirmarSalida from "../components/ConfirmarSalida";
+import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
+
 const nombresMeses = [
   "Enero",
   "Febrero",
@@ -690,7 +693,7 @@ const Movimientos = () => {
             "No hay cambios para guardar"
           );
 
-          return;
+          return true;
         }
 
         setGuardando(true);
@@ -710,14 +713,58 @@ const Movimientos = () => {
         setMensaje(
           "Cambios guardados correctamente"
         );
+
+        return true;
       } catch (error) {
         setError(
           error.message
         );
+
+        return false;
       } finally {
         setGuardando(false);
       }
     };
+
+  // ============================
+  // SALIR CON CAMBIOS SIN GUARDAR
+  // ============================
+
+  const hayCambios =
+    gastos.some(
+      (gasto) => gasto.modificado
+    ) || eliminados.length > 0;
+
+  useAvisoAlCerrar(hayCambios);
+
+  const [modalSalida, setModalSalida] =
+    useState(false);
+
+  const volver = () =>
+    navigate(
+      `/?anio=${anio}&mes=${mes}`
+    );
+
+  const intentarVolver = () => {
+    if (hayCambios) {
+      setModalSalida(true);
+
+      return;
+    }
+
+    volver();
+  };
+
+  const guardarYSalir = async () => {
+    const guardado =
+      await guardarCambios();
+
+    setModalSalida(false);
+
+    if (guardado) {
+      volver();
+    }
+  };
 
   // ============================
   // DESCARTAR CAMBIOS
@@ -862,11 +909,7 @@ const Movimientos = () => {
       <button
         type="button"
         className="boton-volver"
-        onClick={() =>
-          navigate(
-            `/?anio=${anio}&mes=${mes}`
-          )
-        }
+        onClick={intentarVolver}
       >
         ← Volver
       </button>
@@ -1237,6 +1280,7 @@ const Movimientos = () => {
                         <input
                           type="number"
                           min="0"
+                          inputMode="decimal"
                           step="0.01"
                           value={
                             gasto.monto
@@ -1493,6 +1537,20 @@ const Movimientos = () => {
 
         </div>
 
+      )}
+
+
+      {/* MODAL CAMBIOS SIN GUARDAR */}
+
+      {modalSalida && (
+        <ConfirmarSalida
+          guardando={guardando}
+          onGuardar={guardarYSalir}
+          onSalir={volver}
+          onCancelar={() =>
+            setModalSalida(false)
+          }
+        />
       )}
 
 

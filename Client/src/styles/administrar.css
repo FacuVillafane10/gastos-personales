@@ -1,0 +1,169 @@
+.admin-page {
+  width: 100%;
+  max-width: 1000px;
+
+  margin: 0 auto;
+
+  padding: 40px 20px;
+}
+
+.admin-header {
+  margin-bottom: 28px;
+}
+
+.admin-header h1 {
+  margin: 0;
+
+  font-size: 30px;
+}
+
+.admin-grilla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+
+  align-items: start;
+}
+
+.admin-card {
+  padding: 24px;
+
+  border: 1px solid var(--borde);
+  border-radius: 18px;
+
+  background: var(--superficie);
+}
+
+.admin-encabezado {
+  margin-bottom: 18px;
+}
+
+.admin-encabezado h2 {
+  margin: 0 0 4px;
+
+  font-size: 18px;
+}
+
+.admin-encabezado p {
+  margin: 0;
+
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
+
+.admin-alta {
+  display: flex;
+  gap: 10px;
+
+  margin-bottom: 8px;
+}
+
+.admin-alta .campo-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-lista {
+  display: flex;
+  flex-direction: column;
+
+  margin: 14px 0 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.admin-lista li {
+  padding: 10px 0;
+
+  border-top: 1px solid var(--borde);
+}
+
+.admin-lista li:first-child {
+  border-top: none;
+}
+
+.admin-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-nombre {
+  overflow: hidden;
+
+  color: var(--texto);
+
+  font-size: 15px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-botones {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.admin-botones button {
+  padding: 8px 12px;
+
+  font-size: 13px;
+}
+
+.boton-eliminar-item:hover:not(:disabled) {
+  border-color: rgba(255, 107, 122, 0.55);
+
+  background: var(--peligro-fondo);
+  color: var(--peligro);
+}
+
+.admin-edicion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-edicion .campo-input {
+  flex: 1;
+  min-width: 160px;
+}
+
+.admin-error-fila {
+  flex-basis: 100%;
+
+  margin: 0;
+}
+
+.boton-peligro {
+  background: linear-gradient(
+    135deg,
+    #ff6b7a,
+    #ff8a5c
+  );
+
+  color: #1a0507;
+
+  box-shadow:
+    0 6px 20px rgba(255, 107, 122, 0.2);
+}
+
+@media (max-width: 760px) {
+  .admin-grilla {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-page {
+    padding: 25px 15px;
+  }
+
+  .admin-card {
+    padding: 18px;
+  }
+}

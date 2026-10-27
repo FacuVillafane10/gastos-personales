@@ -5,6 +5,7 @@ import {
   obtenerTotalGastos,
 } from "../repositories/resumen.repository.js";
 import { obtenerTotalIngresos } from "../repositories/ingreso.repository.js";
+import { obtenerTotalesAhorro } from "../repositories/ahorro.repository.js";
 
 const sumarMeses = (anio, mes, cantidad) => {
   const indice = anio * 12 + (mes - 1) + cantidad;
@@ -135,6 +136,7 @@ export const generarResumenMensual = async (
     categorias,
     totalAnterior,
     filasCuotas,
+    totalesAhorro,
   ] = await Promise.all([
     obtenerGastosPorCategoria(
       usuarioId,
@@ -153,6 +155,12 @@ export const generarResumenMensual = async (
       anioNumero,
       mesNumero
     ),
+
+    obtenerTotalesAhorro(
+      usuarioId,
+      anioNumero,
+      mesNumero
+    ),
   ]);
 
   return {
@@ -162,7 +170,22 @@ export const generarResumenMensual = async (
     },
     totalGeneral,
     totalIngresos,
-    balance: totalIngresos - totalGeneral,
+
+    // Disponible del mes: lo ahorrado en pesos se aparta del balance
+    // (un retiro lo devuelve). Los dólares no se convierten.
+    // Las compras de dólares también restan los pesos pagados.
+    balance:
+      totalIngresos -
+      totalGeneral -
+      totalesAhorro.mes.ARS -
+      totalesAhorro.pesosCompraMes,
+
+    ahorros: {
+      mes: totalesAhorro.mes,
+      acumulado: totalesAhorro.acumulado,
+      pesosCompraMes: totalesAhorro.pesosCompraMes,
+    },
+
     origenes: origenesFormateados,
 
     categorias: categorias.map((categoria) => ({
