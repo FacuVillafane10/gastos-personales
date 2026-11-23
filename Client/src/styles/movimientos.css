@@ -711,6 +711,80 @@
     padding: 20px 16px;
   }
 
+  /* cada movimiento como tarjeta: tilde | descripción,
+     fecha y cuota, importe y categoría */
+  .tabla-importar thead {
+    display: none;
+  }
+
+  .tabla-importar,
+  .tabla-importar tbody {
+    display: block;
+  }
+
+  .tabla-importar tr {
+    display: grid;
+    grid-template-columns: 30px 1fr 1fr;
+    grid-template-areas:
+      "check desc desc"
+      ". fecha cuota"
+      ". monto categoria";
+    gap: 6px 10px;
+
+    padding: 12px 10px;
+
+    border-bottom: 1px solid var(--borde);
+  }
+
+  .tabla-importar td {
+    padding: 0;
+
+    border: none;
+  }
+
+  .tabla-importar .importar-check {
+    grid-area: check;
+  }
+
+  .tabla-importar .importar-celda-descripcion {
+    grid-area: desc;
+  }
+
+  .tabla-importar .importar-fecha {
+    grid-area: fecha;
+
+    color: var(--texto-tenue);
+  }
+
+  .tabla-importar .importar-cuota {
+    grid-area: cuota;
+
+    color: var(--texto-tenue);
+  }
+
+  .tabla-importar .importar-cuota::before {
+    content: "Cuota ";
+  }
+
+  .tabla-importar .importar-monto {
+    grid-area: monto;
+  }
+
+  .tabla-importar .importar-categoria {
+    grid-area: categoria;
+  }
+
+  .tabla-importar input[type="number"],
+  .tabla-importar select {
+    min-width: 0;
+  }
+
+  .importar-descripcion {
+    min-width: 0;
+
+    overflow-wrap: anywhere;
+  }
+
   .tabla-importar input[type="number"],
   .tabla-importar select {
     font-size: 16px;

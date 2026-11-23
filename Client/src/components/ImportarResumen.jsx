@@ -322,7 +322,7 @@ const ImportarResumen = ({
                       }
                     >
 
-                      <td>
+                      <td className="importar-check">
                         <input
                           type="checkbox"
                           aria-label={`Cargar ${fila.descripcion}`}
@@ -340,7 +340,7 @@ const ImportarResumen = ({
                         {formatearFecha(fila.fechaCompra)}
                       </td>
 
-                      <td>
+                      <td className="importar-celda-descripcion">
                         <span className="importar-descripcion">
                           {fila.descripcion}
                         </span>
@@ -363,7 +363,7 @@ const ImportarResumen = ({
                           : "—"}
                       </td>
 
-                      <td>
+                      <td className="importar-monto">
                         {fila.tipo === "credito" ? (
                           <span className="importar-credito">
                             {formatearMonto(fila.monto)}
@@ -385,7 +385,7 @@ const ImportarResumen = ({
                         )}
                       </td>
 
-                      <td>
+                      <td className="importar-categoria">
                         <select
                           aria-label={`Categoría de ${fila.descripcion}`}
                           value={fila.categoriaId}

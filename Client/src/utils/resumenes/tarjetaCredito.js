@@ -178,7 +178,10 @@ const leerFecha = (texto, contexto, esVisa) => {
 const RE_IGNORAR =
   /SALDO ANTERIOR|SALDO ACTUAL|PAGO M[IÍ]NIMO|^TOTAL\b|^L[IÍ]MITE|^VENCIMIENTO|^CIERRE|^PR[OÓ]XIMO/i;
 
-const RE_PAGO = /SU PAGO|PAGO EN (PESOS|D[OÓ]LARES)/i;
+// Pagos del resumen anterior. "TRANSFERENCIA DEUDA" pasa a pesos la
+// deuda en dólares (no es un consumo nuevo).
+const RE_PAGO =
+  /SU PAGO|PAGO EN (PESOS|D[OÓ]LARES)|TRANSFERENCIA DEUDA/i;
 
 const RE_IMPUESTO =
   /^(IVA|IMP\b|IMP\.|IMPUESTO|IMPTO|PERC|DB\.?\s?RG|RG\s?\d|IIBB|ING\.? ?BRUTOS|INTERES|COMISI[OÓ]N|COM\.|CARGO|SEGURO|SELLOS|DERECHO|MANTENIMIENTO|SERVICIO DE|RENOVACI[OÓ]N)/i;
@@ -228,22 +231,26 @@ const limpiarDescripcion = (texto) =>
 // COLUMNAS PESOS / DÓLARES
 // ============================
 
-const centro = (celda) => celda.x + celda.ancho / 2;
+// Los importes van alineados a la derecha de su columna.
+const bordeDerecho = (celda) => celda.x + celda.ancho;
 
+// Encabezado de la tabla de movimientos: "PESOS" y "DÓLARES" en
+// mayúsculas, como palabras sueltas. No sirve un "$ ... U$S" suelto
+// (aparece en "LA SUMA DE $ ... + U$S ..." con otras posiciones).
 const buscarColumnas = (lineas) => {
   for (const linea of lineas) {
-    const pesos = linea.celdas.find((celda) =>
-      /^PESOS$|^\$$/i.test(celda.texto.trim())
+    const pesos = linea.celdas.find(
+      (celda) => celda.texto.trim() === "PESOS"
     );
 
     const dolares = linea.celdas.find((celda) =>
-      /^(D[OÓ]LARES|U\$S|USD)$/i.test(celda.texto.trim())
+      /^(DOLARES|DÓLARES|U\$S)$/.test(celda.texto.trim())
     );
 
-    if (pesos && dolares && centro(dolares) > centro(pesos)) {
+    if (pesos && dolares && dolares.x > pesos.x) {
       return {
-        pesos: centro(pesos),
-        dolares: centro(dolares),
+        pesos: bordeDerecho(pesos),
+        dolares: bordeDerecho(dolares),
       };
     }
   }
@@ -290,8 +297,8 @@ const separarImportes = (linea, columnas) => {
 
     const esDolar =
       columnas && celda
-        ? Math.abs(centro(celda) - columnas.dolares) <
-          Math.abs(centro(celda) - columnas.pesos)
+        ? Math.abs(bordeDerecho(celda) - columnas.dolares) <
+          Math.abs(bordeDerecho(celda) - columnas.pesos)
         : /U\$S|USD/i.test(linea.texto);
 
     if (esDolar) dolares = valor;
