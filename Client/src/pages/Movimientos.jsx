@@ -756,20 +756,28 @@ const Movimientos = () => {
 
         setGuardando(true);
 
-        await guardarCambiosGastos(
-          id,
-          {
-            crear,
-            actualizar,
-            eliminar:
-              eliminados,
-          }
-        );
+        const resultado =
+          await guardarCambiosGastos(
+            id,
+            {
+              crear,
+              actualizar,
+              eliminar:
+                eliminados,
+            }
+          );
 
         await cargarDatos();
 
+        const futuras =
+          resultado?.cuotasFuturas || 0;
+
         setMensaje(
-          "Cambios guardados correctamente"
+          futuras > 0
+            ? `Cambios guardados correctamente. Se cargaron ${futuras} cuota${
+                futuras === 1 ? "" : "s"
+              } en los meses siguientes.`
+            : "Cambios guardados correctamente"
         );
 
         return true;

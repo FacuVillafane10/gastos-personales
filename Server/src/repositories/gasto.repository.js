@@ -46,6 +46,143 @@ export const obtenerGastosMensuales = async (
   return rows;
 };
 
+// Un gasto nuevo en cuotas (ej. 1/6) deja cargadas las cuotas que
+// faltan (2/6 a 6/6) en los meses siguientes, mismo día del mes (si el
+// mes es más corto, el último día). No se duplica una cuota que ya
+// existe en ese mes con la misma descripción, número e importe (por
+// ejemplo, si se cargó antes o se importó del resumen). Devuelve
+// cuántas cuotas se crearon.
+const crearCuotasFuturas = async (
+  client,
+  usuarioId,
+  origenId,
+  gastos
+) => {
+  let creadas = 0;
+
+  // Cuántas cuotas iguales ya había en cada mes y cuántas de esas ya
+  // se "usaron" para otro gasto de este mismo guardado.
+  const existentes = new Map();
+
+  for (const gasto of gastos) {
+    if (
+      !gasto.cuotaActual ||
+      !gasto.cuotasTotales ||
+      gasto.cuotaActual >= gasto.cuotasTotales
+    ) {
+      continue;
+    }
+
+    for (
+      let meses = 1;
+      gasto.cuotaActual + meses <= gasto.cuotasTotales;
+      meses++
+    ) {
+      const cuota = gasto.cuotaActual + meses;
+
+      const clave = [
+        gasto.fecha,
+        meses,
+        gasto.descripcion.trim().toLowerCase(),
+        cuota,
+        gasto.cuotasTotales,
+        gasto.monto,
+      ].join("|");
+
+      if (!existentes.has(clave)) {
+        const { rows } = await client.query(
+          `
+            SELECT COUNT(*)::INTEGER AS cantidad
+            FROM gastos
+            WHERE usuario_id = $1
+              AND origen_id = $2
+              AND LOWER(TRIM(descripcion)) = LOWER(TRIM($3))
+              AND cuota_actual = $4
+              AND cuotas_totales = $5
+              AND monto = $6
+              AND fecha >= DATE_TRUNC(
+                'month',
+                $7::DATE + MAKE_INTERVAL(months => $8)
+              )
+              AND fecha < DATE_TRUNC(
+                'month',
+                $7::DATE + MAKE_INTERVAL(months => $8)
+              ) + INTERVAL '1 month'
+          `,
+          [
+            usuarioId,
+            origenId,
+            gasto.descripcion,
+            cuota,
+            gasto.cuotasTotales,
+            gasto.monto,
+            gasto.fecha,
+            meses,
+          ]
+        );
+
+        existentes.set(clave, {
+          cantidad: rows[0].cantidad,
+          usadas: 0,
+        });
+      }
+
+      const registro = existentes.get(clave);
+
+      if (registro.usadas < registro.cantidad) {
+        registro.usadas++;
+
+        continue;
+      }
+
+      await client.query(
+        `
+          INSERT INTO gastos (
+            usuario_id,
+            origen_id,
+            categoria_id,
+            fecha,
+            descripcion,
+            monto,
+            cuota_actual,
+            cuotas_totales,
+            pagado,
+            observaciones
+          )
+          VALUES (
+            $1,
+            $2,
+            $3,
+            ($4::DATE + MAKE_INTERVAL(months => $5))::DATE,
+            $6,
+            $7,
+            $8,
+            $9,
+            FALSE,
+            $10
+          )
+        `,
+        [
+          usuarioId,
+          origenId,
+          gasto.categoriaId,
+          gasto.fecha,
+          meses,
+          gasto.descripcion,
+          gasto.monto,
+          cuota,
+          gasto.cuotasTotales,
+          gasto.observaciones,
+        ]
+      );
+
+      creadas++;
+    }
+  }
+
+  return creadas;
+};
+
 export const guardarCambiosGastos = async (
   usuarioId,
   origenId,
@@ -167,6 +304,13 @@ export const guardarCambiosGastos = async (
       creados.push(rows[0]);
     }
 
+    const cuotasFuturas = await crearCuotasFuturas(
+      client,
+      usuarioId,
+      origenId,
+      crear
+    );
+
     // ============================
     // ACTUALIZAR
     // ============================
@@ -261,6 +405,7 @@ export const guardarCambiosGastos = async (
       creados,
       actualizados,
       eliminados,
+      cuotasFuturas,
     };
   } catch (error) {
     await client.query("ROLLBACK");
