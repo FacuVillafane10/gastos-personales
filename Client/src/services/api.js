@@ -316,6 +316,26 @@ export const obtenerGastosMensuales =
   };
 
 
+// CARGAR CUOTAS SIGUIENTES
+// (las cuotas que faltan de los gastos en cuotas del mes)
+
+export const cargarCuotasSiguientes =
+  async (origenId, anio, mes) => {
+    return await apiFetch(
+      "/gastos/cuotas-siguientes",
+      {
+        method: "POST",
+
+        body: JSON.stringify({
+          origenId,
+          anio,
+          mes,
+        }),
+      }
+    );
+  };
+
+
 // GUARDAR CAMBIOS DE GASTOS
 
 export const guardarCambiosGastos =

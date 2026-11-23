@@ -705,6 +705,17 @@
   color: var(--azul);
 }
 
+.importar-tipo.tipo-cargado {
+  margin-right: 6px;
+
+  border-color: rgba(245, 184, 74, 0.45);
+
+  color: #f5b84a;
+
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .importar-tipo.tipo-credito {
   border-color: rgba(34, 229, 143, 0.35);
 

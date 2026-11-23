@@ -1,4 +1,5 @@
 import {
+  cargarCuotasSiguientes,
   obtenerGastosMensuales,
   guardarCambiosGastos,
 } from "../repositories/gasto.repository.js";
@@ -165,6 +166,24 @@ export const listarGastosMensuales = async (
     ...gasto,
     monto: Number(gasto.monto),
   }));
+};
+
+export const generarCuotasSiguientes = async (
+  usuarioId,
+  origenId,
+  anio,
+  mes
+) => {
+  const id = validarOrigenId(origenId);
+
+  const periodo = validarPeriodo(anio, mes);
+
+  return await cargarCuotasSiguientes(
+    usuarioId,
+    id,
+    periodo.anio,
+    periodo.mes
+  );
 };
 
 export const guardarCambios = async (

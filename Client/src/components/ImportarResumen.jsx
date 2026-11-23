@@ -7,6 +7,7 @@ import {
   ErrorClave,
   extraerLineas,
   leerResumen,
+  marcarYaCargados,
 } from "../utils/resumenes";
 
 import { formatearMonto } from "../utils/moneda";
@@ -27,14 +28,15 @@ const formatearFecha = (fecha) =>
     : "—";
 
 // Los créditos (devoluciones, bonificaciones) no se pueden cargar como
-// gasto; los consumos en dólares quedan sin marcar para revisarlos.
+// gasto; los consumos en dólares y los que ya están cargados en el mes
+// quedan sin marcar para revisarlos.
 const preparaFilas = (movimientos) =>
   movimientos.map((movimiento, indice) => ({
     ...movimiento,
     clave: indice,
-    seleccionado: ["consumo", "cuota", "impuesto"].includes(
-      movimiento.tipo
-    ),
+    seleccionado:
+      !movimiento.yaCargado &&
+      ["consumo", "cuota", "impuesto"].includes(movimiento.tipo),
     montoCarga: Math.abs(movimiento.monto),
     categoriaId: "",
   }));
@@ -44,6 +46,7 @@ const ImportarResumen = ({
   mes,
   nombreMes,
   categorias,
+  existentes,
   onCerrar,
   onImportar,
 }) => {
@@ -80,7 +83,11 @@ const ImportarResumen = ({
 
       setResumen(leido);
 
-      setFilas(preparaFilas(leido.movimientos));
+      setFilas(
+        preparaFilas(
+          marcarYaCargados(leido.movimientos, existentes)
+        )
+      );
     } catch (error) {
       if (error instanceof ErrorClave) {
         setPideClave(true);
@@ -274,10 +281,11 @@ const ImportarResumen = ({
           <>
 
             <p className="modal-ayuda">
-              Marcá los movimientos que querés cargar. Los
-              consumos en dólares quedan sin marcar: si los
-              cargás, poné el importe en pesos. La fecha de
-              compra queda en las observaciones.
+              Marcá los movimientos que querés cargar. Quedan
+              sin marcar los que ya tenés cargados este mes
+              (mismo importe y cuota) y los consumos en dólares:
+              si los cargás, poné el importe en pesos. La fecha
+              de compra queda en las observaciones.
             </p>
 
             {diferenciaControl !== null && (
@@ -377,6 +385,12 @@ const ImportarResumen = ({
                         <span className="importar-descripcion">
                           {fila.descripcion}
                         </span>
+
+                        {fila.yaCargado && (
+                          <span className="importar-tipo tipo-cargado">
+                            Ya cargado: {fila.yaCargado}
+                          </span>
+                        )}
 
                         {fila.tipo !== "consumo" &&
                           fila.tipo !== "cuota" && (

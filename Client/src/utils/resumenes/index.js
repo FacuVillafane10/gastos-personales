@@ -56,6 +56,55 @@ export const leerResumen = (lineas) => {
   return resumen;
 };
 
+const normalizar = (texto) =>
+  String(texto || "")
+    .trim()
+    .toLowerCase();
+
+const numeroCuota = (valor) => Number(valor) || 0;
+
+// Marca los movimientos del resumen que ya están cargados en el mes:
+// mismo importe y misma cuota (aunque la descripción sea distinta, ej.
+// "Saymood" y "DLO*SAYMOOD"). Cada gasto existente se usa una sola vez
+// y se prefiere el que además tiene la misma descripción.
+export const marcarYaCargados = (movimientos, existentes) => {
+  const usados = new Set();
+
+  const coincide = (movimiento, gasto) =>
+    !usados.has(gasto.id) &&
+    Math.abs(Number(gasto.monto) - Math.abs(movimiento.monto)) < 0.005 &&
+    numeroCuota(gasto.cuotaActual) ===
+      numeroCuota(movimiento.cuotaActual) &&
+    numeroCuota(gasto.cuotasTotales) ===
+      numeroCuota(movimiento.cuotasTotales);
+
+  return movimientos.map((movimiento) => {
+    if (movimiento.moneda !== "ARS" || movimiento.monto <= 0) {
+      return movimiento;
+    }
+
+    const candidatos = existentes.filter((gasto) =>
+      coincide(movimiento, gasto)
+    );
+
+    const existente =
+      candidatos.find(
+        (gasto) =>
+          normalizar(gasto.descripcion) ===
+          normalizar(movimiento.descripcion)
+      ) || candidatos[0];
+
+    if (!existente) return movimiento;
+
+    usados.add(existente.id);
+
+    return {
+      ...movimiento,
+      yaCargado: existente.descripcion || "(sin descripción)",
+    };
+  });
+};
+
 const dosDigitos = (numero) =>
   String(numero).padStart(2, "0");
 

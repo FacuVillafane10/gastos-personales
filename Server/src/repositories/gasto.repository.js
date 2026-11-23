@@ -183,6 +183,85 @@ const crearCuotasFuturas = async (
   return creadas;
 };
 
+// Carga en los meses siguientes las cuotas que faltan de los gastos en
+// cuotas del mes indicado (para gastos guardados antes de que existiera
+// la carga automática). No duplica las que ya están.
+export const cargarCuotasSiguientes = async (
+  usuarioId,
+  origenId,
+  anio,
+  mes
+) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const origen = await client.query(
+      `
+        SELECT 1
+        FROM origenes_gasto
+        WHERE id = $1
+          AND usuario_id = $2
+      `,
+      [origenId, usuarioId]
+    );
+
+    if (origen.rowCount === 0) {
+      throw new Error("Origen no encontrado");
+    }
+
+    const { rows } = await client.query(
+      `
+        SELECT
+          TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha,
+          descripcion,
+          monto,
+          categoria_id,
+          cuota_actual,
+          cuotas_totales,
+          observaciones
+        FROM gastos
+        WHERE origen_id = $1
+          AND usuario_id = $2
+          AND cuota_actual < cuotas_totales
+          AND fecha >= MAKE_DATE($3, $4, 1)
+          AND fecha < MAKE_DATE($3, $4, 1) + INTERVAL '1 month'
+        ORDER BY fecha, id
+      `,
+      [origenId, usuarioId, anio, mes]
+    );
+
+    const creadas = await crearCuotasFuturas(
+      client,
+      usuarioId,
+      origenId,
+      rows.map((fila) => ({
+        fecha: fila.fecha,
+        descripcion: fila.descripcion,
+        monto: Number(fila.monto),
+        categoriaId: fila.categoria_id,
+        cuotaActual: fila.cuota_actual,
+        cuotasTotales: fila.cuotas_totales,
+        observaciones: fila.observaciones,
+      }))
+    );
+
+    await client.query("COMMIT");
+
+    return {
+      gastosEnCuotas: rows.length,
+      cuotasFuturas: creadas,
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 export const guardarCambiosGastos = async (
   usuarioId,
   origenId,

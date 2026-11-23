@@ -10,6 +10,7 @@ import {
 } from "react-router";
 
 import {
+  cargarCuotasSiguientes,
   crearCategoria,
   guardarCambiosGastos,
   obtenerCategorias,
@@ -292,17 +293,83 @@ const Movimientos = () => {
   const [modalImportar, setModalImportar] =
     useState(false);
 
+  // Lo que ya estaba cargado se detecta en la vista previa (queda sin
+  // marcar), así que lo importado se agrega siempre como filas nuevas.
   const handleImportarResumen = (nuevos) => {
-    const detalle =
-      incorporarFilas(nuevos);
+    setGastos((gastosActuales) => [
+      ...gastosActuales,
+      ...nuevos.map((gasto) => ({
+        id: crypto.randomUUID(),
+        ...gasto,
+        pagado: false,
+        esNuevo: true,
+        modificado: true,
+      })),
+    ]);
+
+    setError("");
 
     setMensaje(
       `Se importaron ${nuevos.length} gasto${
         nuevos.length === 1 ? "" : "s"
-      } del resumen${detalle}. Revisalos y tocá "Guardar cambios".`
+      } del resumen. Revisalos y tocá "Guardar cambios".`
     );
 
     setModalImportar(false);
+  };
+
+  // ============================
+  // CARGAR CUOTAS SIGUIENTES
+  // ============================
+
+  const [cargandoCuotas, setCargandoCuotas] =
+    useState(false);
+
+  const handleCuotasSiguientes = async () => {
+    if (hayCambios) {
+      setMensaje("");
+      setError(
+        "Guardá o descartá los cambios antes de cargar las cuotas siguientes."
+      );
+
+      return;
+    }
+
+    try {
+      setCargandoCuotas(true);
+      setError("");
+      setMensaje("");
+
+      const resultado =
+        await cargarCuotasSiguientes(
+          id,
+          anio,
+          mes
+        );
+
+      if (resultado.gastosEnCuotas === 0) {
+        setMensaje(
+          "Este mes no hay gastos con cuotas pendientes."
+        );
+      } else if (resultado.cuotasFuturas === 0) {
+        setMensaje(
+          "Las cuotas siguientes ya estaban cargadas."
+        );
+      } else {
+        setMensaje(
+          `Se cargaron ${resultado.cuotasFuturas} cuota${
+            resultado.cuotasFuturas === 1 ? "" : "s"
+          } en los meses siguientes.`
+        );
+      }
+    } catch (error) {
+      setError(
+        error.message ||
+          "No se pudieron cargar las cuotas siguientes"
+      );
+    } finally {
+      setCargandoCuotas(false);
+    }
   };
 
   // ============================
@@ -1115,6 +1182,28 @@ const Movimientos = () => {
               Importar resumen PDF
             </button>
 
+            {gastos.some(
+              (gasto) =>
+                Number(gasto.cuotaActual) <
+                Number(gasto.cuotasTotales)
+            ) && (
+
+              <button
+                type="button"
+                className="boton-secundario"
+                onClick={
+                  handleCuotasSiguientes
+                }
+                disabled={cargandoCuotas}
+                title="Carga en los meses siguientes las cuotas que faltan de los gastos en cuotas de este mes"
+              >
+                {cargandoCuotas
+                  ? "Cargando..."
+                  : "Cargar cuotas siguientes"}
+              </button>
+
+            )}
+
             <button
               type="button"
               className="boton-agregar"
@@ -1916,6 +2005,7 @@ const Movimientos = () => {
           mes={mes}
           nombreMes={nombresMeses[mes - 1]}
           categorias={categorias}
+          existentes={gastos}
           onCerrar={() =>
             setModalImportar(false)
           }
