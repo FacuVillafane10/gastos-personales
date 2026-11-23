@@ -59,6 +59,19 @@ const formatearDinero = (valor) => {
   }).format(valor);
 };
 
+const formatearImporte = (valor) =>
+  new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+    maximumFractionDigits: 2,
+  }).format(Number(valor) || 0);
+
+// "2026-11-04" → "04/11"
+const fechaCorta = (fecha) =>
+  fecha
+    ? `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}`
+    : "";
+
 // Una compra en cuotas está finalizada cuando la cuota actual
 // es igual al total (por ejemplo 3/3).
 const cuotasTerminadas = (gasto) => {
@@ -109,6 +122,30 @@ const Movimientos = () => {
 
   // Vencimiento del resumen del mes ("AAAA-MM-DD" o "") y el guardado,
   // para saber si cambió.
+  // En el celular cada gasto se ve en una línea; estas son las filas
+  // desplegadas para editar.
+  const [filasAbiertas, setFilasAbiertas] =
+    useState(() => new Set());
+
+  const abrirFila = (gastoId) =>
+    setFilasAbiertas((actuales) =>
+      new Set(actuales).add(gastoId)
+    );
+
+  const plegarFila = (gastoId) =>
+    setFilasAbiertas((actuales) => {
+      const nuevas = new Set(actuales);
+
+      nuevas.delete(gastoId);
+
+      return nuevas;
+    });
+
+  // Se ve compacta salvo que esté abierta o sea una fila nueva vacía.
+  const filaCompacta = (gasto) =>
+    !filasAbiertas.has(gasto.id) &&
+    String(gasto.descripcion || "").trim() !== "";
+
   // Última categoría usada para cada descripción ("super mami": 3)
   const [sugeridas, setSugeridas] =
     useState({});
@@ -215,6 +252,8 @@ const Movimientos = () => {
       ]);
 
       setSugeridas(sugeridasData || {});
+
+      setFilasAbiertas(new Set());
 
       setVencimiento(vencimientoData || "");
 
@@ -586,6 +625,8 @@ const Movimientos = () => {
     );
 
     if (vacia) {
+      flushSync(() => abrirFila(vacia.id));
+
       enfocarDescripcion(vacia.id);
 
       return;
@@ -625,6 +666,8 @@ const Movimientos = () => {
           nuevaFila,
         ]
       );
+
+      abrirFila(nuevaFila.id);
     });
 
     enfocarDescripcion(nuevaFila.id);
@@ -1520,6 +1563,9 @@ const Movimientos = () => {
                         gasto.pagado
                           ? "fila-pagada"
                           : "",
+                        filaCompacta(gasto)
+                          ? "fila-compacta"
+                          : "",
                       ]
                         .filter(Boolean)
                         .join(" ")}
@@ -1816,6 +1862,74 @@ const Movimientos = () => {
                           title="Eliminar"
                         >
                           ×
+                        </button>
+
+                        {/* celular: volver a la vista de una línea */}
+                        <button
+                          type="button"
+                          className="boton-plegar"
+                          onClick={() =>
+                            plegarFila(
+                              gasto.id
+                            )
+                          }
+                          title="Plegar"
+                        >
+                          Listo
+                        </button>
+
+                      </td>
+
+
+                      {/* CELULAR: VISTA DE UNA LÍNEA */}
+
+                      <td className="celda-resumen-movil">
+
+                        <button
+                          type="button"
+                          className="resumen-movil"
+                          onClick={() =>
+                            abrirFila(
+                              gasto.id
+                            )
+                          }
+                        >
+
+                          <span className="resumen-movil-linea">
+
+                            <span className="resumen-movil-descripcion">
+                              {gasto.descripcion}
+                            </span>
+
+                            <span className="resumen-movil-importe">
+                              {formatearImporte(
+                                gasto.monto
+                              )}
+                            </span>
+
+                          </span>
+
+                          <span className="resumen-movil-detalle">
+                            {[
+                              fechaCorta(
+                                gasto.fecha
+                              ),
+                              categorias.find(
+                                (categoria) =>
+                                  categoria.id ===
+                                  Number(
+                                    gasto.categoriaId
+                                  )
+                              )?.nombre,
+                              gasto.cuotaActual &&
+                              gasto.cuotasTotales
+                                ? `Cuota ${gasto.cuotaActual}/${gasto.cuotasTotales}`
+                                : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+
                         </button>
 
                       </td>
