@@ -115,14 +115,19 @@ export const extraerLineas = async (archivo, clave) => {
 
   const datos = new Uint8Array(await archivo.arrayBuffer());
 
+  // En pdf.js 6 el documento se libera desde la tarea de carga.
+  const tarea = pdfjs.getDocument({
+    data: datos,
+    password: clave || undefined,
+  });
+
   let documento;
 
   try {
-    documento = await pdfjs.getDocument({
-      data: datos,
-      password: clave || undefined,
-    }).promise;
+    documento = await tarea.promise;
   } catch (error) {
+    tarea.destroy();
+
     if (error?.name === "PasswordException") {
       throw new ErrorClave(
         error.code === pdfjs.PasswordResponses.INCORRECT_PASSWORD
@@ -145,7 +150,7 @@ export const extraerLineas = async (archivo, clave) => {
       lineas.push(...agruparEnLineas(contenido.items));
     }
   } finally {
-    documento.destroy();
+    tarea.destroy();
   }
 
   return lineas;
