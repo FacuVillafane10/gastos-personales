@@ -16,6 +16,7 @@ import {
   obtenerCategorias,
   obtenerGastosMensuales,
   obtenerOrigen,
+  obtenerVencimiento,
 } from "../services/api";
 
 import {
@@ -23,7 +24,11 @@ import {
   generarCopias,
 } from "../utils/copiarGastos";
 
-import { obtenerFechaSugerida } from "../utils/fechas";
+import {
+  obtenerFechaSugerida,
+  textoVencimiento,
+  vencimientoUrgente,
+} from "../utils/fechas";
 
 import ConfirmarSalida from "../components/ConfirmarSalida";
 import ImportarResumen from "../components/ImportarResumen";
@@ -100,6 +105,16 @@ const Movimientos = () => {
   const [categorias, setCategorias] =
     useState([]);
 
+  // Vencimiento del resumen del mes ("AAAA-MM-DD" o "") y el guardado,
+  // para saber si cambió.
+  const [vencimiento, setVencimiento] =
+    useState("");
+
+  const [
+    vencimientoGuardado,
+    setVencimientoGuardado,
+  ] = useState("");
+
   const [cargando, setCargando] =
     useState(true);
 
@@ -168,6 +183,7 @@ const Movimientos = () => {
         origenData,
         gastosData,
         categoriasData,
+        vencimientoData,
       ] = await Promise.all([
         obtenerOrigen(id),
 
@@ -178,7 +194,20 @@ const Movimientos = () => {
         ),
 
         obtenerCategorias(),
+
+        // Si el servidor todavía no tiene la ruta, no se rompe la carga
+        obtenerVencimiento(
+          id,
+          anio,
+          mes
+        ).catch(() => null),
       ]);
+
+      setVencimiento(vencimientoData || "");
+
+      setVencimientoGuardado(
+        vencimientoData || ""
+      );
 
       setOrigen(origenData);
 
@@ -296,8 +325,22 @@ const Movimientos = () => {
   // El resumen reemplaza lo cargado en el mes: se quitan los gastos
   // elegidos para borrar (los guardados se eliminan al guardar) y se
   // agregan los del PDF como filas nuevas.
-  const handleImportarResumen = (nuevos, idsABorrar) => {
+  const handleImportarResumen = (
+    nuevos,
+    idsABorrar,
+    vencimientoResumen
+  ) => {
     const borrar = new Set(idsABorrar);
+
+    if (vencimientoResumen) {
+      setVencimiento(
+        [
+          vencimientoResumen.anio,
+          String(vencimientoResumen.mes).padStart(2, "0"),
+          String(vencimientoResumen.dia).padStart(2, "0"),
+        ].join("-")
+      );
+    }
 
     setEliminados((eliminadosActuales) => [
       ...eliminadosActuales,
@@ -827,10 +870,14 @@ const Movimientos = () => {
               };
             });
 
+        const cambioVencimiento =
+          vencimiento !== vencimientoGuardado;
+
         if (
           crear.length === 0 &&
           actualizar.length === 0 &&
-          eliminados.length === 0
+          eliminados.length === 0 &&
+          !cambioVencimiento
         ) {
           setMensaje(
             "No hay cambios para guardar"
@@ -849,6 +896,15 @@ const Movimientos = () => {
               actualizar,
               eliminar:
                 eliminados,
+
+              ...(cambioVencimiento && {
+                vencimiento: {
+                  anio,
+                  mes,
+                  fecha:
+                    vencimiento || null,
+                },
+              }),
             }
           );
 
@@ -884,7 +940,9 @@ const Movimientos = () => {
   const hayCambios =
     gastos.some(
       (gasto) => gasto.modificado
-    ) || eliminados.length > 0;
+    ) ||
+    eliminados.length > 0 ||
+    vencimiento !== vencimientoGuardado;
 
   useAvisoAlCerrar(hayCambios);
 
@@ -1096,6 +1154,21 @@ const Movimientos = () => {
             {anio}
           </span>
 
+          <label className="campo-vencimiento">
+            <span>Vence</span>
+
+            <input
+              type="date"
+              value={vencimiento}
+              onChange={(event) => {
+                setVencimiento(
+                  event.target.value
+                );
+                setMensaje("");
+              }}
+            />
+          </label>
+
         </div>
 
 
@@ -1133,6 +1206,25 @@ const Movimientos = () => {
                     )}`
                   : "Todo pagado"}
               </small>
+
+              {totalPendiente > 0 &&
+                vencimiento && (
+
+                <small
+                  className={
+                    vencimientoUrgente(
+                      vencimiento
+                    )
+                      ? "aviso-vencimiento urgente"
+                      : "aviso-vencimiento"
+                  }
+                >
+                  {textoVencimiento(
+                    vencimiento
+                  )}
+                </small>
+
+              )}
 
               <button
                 type="button"
@@ -2024,6 +2116,7 @@ const Movimientos = () => {
           nombreMes={nombresMeses[mes - 1]}
           categorias={categorias}
           existentes={gastos}
+          origenId={id}
           onCerrar={() =>
             setModalImportar(false)
           }

@@ -316,6 +316,18 @@ export const obtenerGastosMensuales =
   };
 
 
+// VENCIMIENTO DEL MES DE UN ORIGEN ("AAAA-MM-DD" o null)
+
+export const obtenerVencimiento =
+  async (origenId, anio, mes) => {
+    const { fecha } = await apiFetch(
+      `/gastos/vencimiento?origenId=${origenId}&anio=${anio}&mes=${mes}`
+    );
+
+    return fecha;
+  };
+
+
 // CARGAR CUOTAS SIGUIENTES
 // (las cuotas que faltan de los gastos en cuotas del mes)
 

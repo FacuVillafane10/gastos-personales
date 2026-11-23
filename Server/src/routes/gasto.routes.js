@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   getGastos,
+  getVencimiento,
   postCambiosGastos,
   postCuotasSiguientes,
 } from "../controllers/gasto.controller.js";
@@ -9,6 +10,8 @@ import {
 const router = Router();
 
 router.get("/", getGastos);
+
+router.get("/vencimiento", getVencimiento);
 
 router.post(
   "/cambios",

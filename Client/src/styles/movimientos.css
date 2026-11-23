@@ -578,6 +578,43 @@
   color: var(--texto-suave);
 }
 
+.importar-titulares {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin: 0 0 12px;
+
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
+
+.chip-titular {
+  padding: 6px 12px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 999px;
+
+  background: transparent;
+  color: var(--texto-tenue);
+
+  font-family: inherit;
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.chip-titular[aria-pressed="true"] {
+  border-color: var(--verde);
+
+  background: var(--exito-fondo);
+  color: var(--verde);
+
+  font-weight: 600;
+}
+
 .importar-tabla-wrapper {
   min-height: 0;
 
@@ -909,6 +946,56 @@
 
 .monto-pendiente {
   color: #f5b84a;
+}
+
+.aviso-vencimiento {
+  color: var(--texto-suave);
+}
+
+.aviso-vencimiento.urgente {
+  color: var(--peligro);
+
+  font-weight: 600;
+}
+
+.campo-vencimiento {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-left: 12px;
+
+  color: var(--texto-tenue);
+
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.campo-vencimiento input {
+  padding: 4px 8px;
+
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+
+  background: var(--bg-elevado);
+  color: var(--texto);
+
+  font-family: inherit;
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+@media (max-width: 700px) {
+  .campo-vencimiento {
+    display: flex;
+
+    margin: 10px 0 0;
+  }
+
+  .campo-vencimiento input {
+    font-size: 16px;
+  }
 }
 
 .boton-marcar-todos {

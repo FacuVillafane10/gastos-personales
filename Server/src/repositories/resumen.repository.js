@@ -14,7 +14,8 @@ export const obtenerResumenMensual = async (
         COALESCE(
           SUM(g.monto) FILTER (WHERE g.pagado),
           0
-        ) AS pagado
+        ) AS pagado,
+        TO_CHAR(v.fecha, 'YYYY-MM-DD') AS vencimiento
       FROM origenes_gasto o
 
       LEFT JOIN gastos g
@@ -23,12 +24,19 @@ export const obtenerResumenMensual = async (
         AND g.fecha >= MAKE_DATE($2, $3, 1)
         AND g.fecha < MAKE_DATE($2, $3, 1) + INTERVAL '1 month'
 
+      LEFT JOIN vencimientos v
+        ON v.origen_id = o.id
+        AND v.usuario_id = $1
+        AND v.anio = $2
+        AND v.mes = $3
+
       WHERE o.activo = TRUE
         AND o.usuario_id = $1
 
       GROUP BY
         o.id,
-        o.nombre
+        o.nombre,
+        v.fecha
 
       ORDER BY
         o.nombre

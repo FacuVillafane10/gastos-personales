@@ -33,7 +33,7 @@ const formatearFecha = (fecha) =>
 const preparaFilas = (movimientos) =>
   movimientos.map((movimiento, indice) => ({
     ...movimiento,
-    clave: indice,
+    clave: movimiento.indice ?? indice,
     seleccionado: ["consumo", "cuota", "impuesto"].includes(
       movimiento.tipo
     ),
@@ -41,7 +41,44 @@ const preparaFilas = (movimientos) =>
     categoriaId: movimiento.reemplaza?.categoriaId || "",
   }));
 
+// Grupos por titular (tarjetas adicionales). Lo que no es de ningún
+// titular (impuestos y cargos de la cuenta) va en "Cargos generales".
+const GENERALES = "__generales";
+
+const claveTitular = (movimiento) =>
+  movimiento.titular || GENERALES;
+
+const nombreTitular = (clave) =>
+  clave === GENERALES ? "Cargos generales" : clave;
+
+// Qué titulares se eligieron la última vez en este origen (se guarda en
+// el dispositivo).
+const claveGuardada = (origenId) =>
+  `importar-titulares-${origenId}`;
+
+const leerElegidos = (origenId) => {
+  try {
+    return JSON.parse(
+      localStorage.getItem(claveGuardada(origenId)) || "null"
+    );
+  } catch {
+    return null;
+  }
+};
+
+const guardarElegidos = (origenId, elegidos) => {
+  try {
+    localStorage.setItem(
+      claveGuardada(origenId),
+      JSON.stringify([...elegidos])
+    );
+  } catch {
+    // sin almacenamiento disponible: no se recuerda
+  }
+};
+
 const ImportarResumen = ({
+  origenId,
   anio,
   mes,
   nombreMes,
@@ -70,6 +107,28 @@ const ImportarResumen = ({
     () => new Set()
   );
 
+  // Titulares cuyos movimientos se muestran y se pueden cargar.
+  const [elegidos, setElegidos] = useState(
+    () => new Set()
+  );
+
+  // Las filas se arman solo con los titulares elegidos, así el
+  // emparejamiento con lo ya cargado no usa movimientos ocultos.
+  const armarFilas = (leido, titularesElegidos) =>
+    preparaFilas(
+      emparejarConExistentes(
+        leido.movimientos
+          .map((movimiento, indice) => ({
+            ...movimiento,
+            indice,
+          }))
+          .filter((movimiento) =>
+            titularesElegidos.has(claveTitular(movimiento))
+          ),
+        existentes
+      )
+    );
+
   const leerArchivo = async (event) => {
     event.preventDefault();
 
@@ -89,11 +148,22 @@ const ImportarResumen = ({
 
       setResumen(leido);
 
-      setFilas(
-        preparaFilas(
-          emparejarConExistentes(leido.movimientos, existentes)
-        )
+      const disponibles = new Set(
+        leido.movimientos.map(claveTitular)
       );
+
+      const anteriores = (leerElegidos(origenId) || []).filter(
+        (clave) => disponibles.has(clave)
+      );
+
+      const iniciales =
+        anteriores.length > 0
+          ? new Set(anteriores)
+          : disponibles;
+
+      setElegidos(iniciales);
+
+      setFilas(armarFilas(leido, iniciales));
 
       setConservar(new Set());
     } catch (error) {
@@ -113,6 +183,28 @@ const ImportarResumen = ({
         fila.clave === clave ? { ...fila, ...cambios } : fila
       )
     );
+  };
+
+  const titulares = resumen
+    ? [...new Set(resumen.movimientos.map(claveTitular))].map(
+        (clave) => ({
+          clave,
+          cantidad: resumen.movimientos.filter(
+            (movimiento) => claveTitular(movimiento) === clave
+          ).length,
+        })
+      )
+    : [];
+
+  const cambiarTitular = (clave) => {
+    const nuevos = new Set(elegidos);
+
+    if (nuevos.has(clave)) nuevos.delete(clave);
+    else nuevos.add(clave);
+
+    setElegidos(nuevos);
+
+    setFilas(armarFilas(resumen, nuevos));
   };
 
   const seleccionadas = filas.filter(
@@ -164,6 +256,10 @@ const ImportarResumen = ({
       return;
     }
 
+    if (titulares.length > 1) {
+      guardarElegidos(origenId, elegidos);
+    }
+
     onImportar(
       armarGastos({
         movimientos: seleccionadas.map((fila) => ({
@@ -176,7 +272,8 @@ const ImportarResumen = ({
         anio,
         mes,
       }),
-      idsABorrar
+      idsABorrar,
+      resumen.vencimiento
     );
   };
 
@@ -202,6 +299,10 @@ const ImportarResumen = ({
                 ? `Resumen ${resumen.marca}${
                     resumen.cierre
                       ? ` · cierre ${formatearFecha(resumen.cierre)}`
+                      : ""
+                  }${
+                    resumen.vencimiento
+                      ? ` · vence ${formatearFecha(resumen.vencimiento)}`
                       : ""
                   }`
                 : "Resumen de tarjeta (PDF)"}
@@ -366,6 +467,29 @@ const ImportarResumen = ({
                   </details>
                 )}
               </div>
+            )}
+
+            {titulares.length > 1 && (
+
+              <div className="importar-titulares">
+
+                <span>Titulares:</span>
+
+                {titulares.map(({ clave, cantidad }) => (
+                  <button
+                    key={clave}
+                    type="button"
+                    className="chip-titular"
+                    aria-pressed={elegidos.has(clave)}
+                    onClick={() => cambiarTitular(clave)}
+                  >
+                    {elegidos.has(clave) ? "✓ " : ""}
+                    {nombreTitular(clave)} ({cantidad})
+                  </button>
+                ))}
+
+              </div>
+
             )}
 
             <div className="importar-tabla-wrapper">

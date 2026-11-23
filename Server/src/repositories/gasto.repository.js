@@ -262,6 +262,60 @@ export const cargarCuotasSiguientes = async (
   }
 };
 
+export const obtenerVencimiento = async (
+  usuarioId,
+  origenId,
+  anio,
+  mes
+) => {
+  const { rows } = await pool.query(
+    `
+      SELECT TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha
+      FROM vencimientos
+      WHERE usuario_id = $1
+        AND origen_id = $2
+        AND anio = $3
+        AND mes = $4
+    `,
+    [usuarioId, origenId, anio, mes]
+  );
+
+  return rows[0]?.fecha || null;
+};
+
+// Guarda (o borra, si la fecha es null) el vencimiento del mes.
+const guardarVencimiento = async (
+  client,
+  usuarioId,
+  origenId,
+  { anio, mes, fecha }
+) => {
+  if (!fecha) {
+    await client.query(
+      `
+        DELETE FROM vencimientos
+        WHERE usuario_id = $1
+          AND origen_id = $2
+          AND anio = $3
+          AND mes = $4
+      `,
+      [usuarioId, origenId, anio, mes]
+    );
+
+    return;
+  }
+
+  await client.query(
+    `
+      INSERT INTO vencimientos (usuario_id, origen_id, anio, mes, fecha)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (usuario_id, origen_id, anio, mes)
+      DO UPDATE SET fecha = EXCLUDED.fecha
+    `,
+    [usuarioId, origenId, anio, mes, fecha]
+  );
+};
+
 export const guardarCambiosGastos = async (
   usuarioId,
   origenId,
@@ -273,6 +327,7 @@ export const guardarCambiosGastos = async (
     crear = [],
     actualizar = [],
     eliminar = [],
+    vencimiento = null,
   } = cambios;
 
   try {
@@ -448,6 +503,19 @@ export const guardarCambiosGastos = async (
       }
 
       actualizados.push(rows[0]);
+    }
+
+    // ============================
+    // VENCIMIENTO DEL MES (si vino)
+    // ============================
+
+    if (vencimiento) {
+      await guardarVencimiento(
+        client,
+        usuarioId,
+        origenId,
+        vencimiento
+      );
     }
 
     // ============================

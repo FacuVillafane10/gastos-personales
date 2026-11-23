@@ -25,6 +25,10 @@ import {
 import CuotasPendientes from "../components/CuotasPendientes";
 import GastoRapido from "../components/GastoRapido";
 import { formatearMonto } from "../utils/moneda";
+import {
+  textoVencimiento,
+  vencimientoUrgente,
+} from "../utils/fechas";
 import GastosPorCategoria from "../components/GastosPorCategoria";
 
 const nombresMeses = [
@@ -901,6 +905,23 @@ const handleCerrarSesion = async () => {
                               ? "✓ Todo pagado"
                               : "Ver movimientos"}
                         </small>
+
+                        {origen.vencimiento &&
+                          origen.total > origen.pagado && (
+                            <small
+                              className={
+                                vencimientoUrgente(
+                                  origen.vencimiento
+                                )
+                                  ? "origen-vencimiento urgente"
+                                  : "origen-vencimiento"
+                              }
+                            >
+                              {textoVencimiento(
+                                origen.vencimiento
+                              )}
+                            </small>
+                          )}
 
                       </div>
 

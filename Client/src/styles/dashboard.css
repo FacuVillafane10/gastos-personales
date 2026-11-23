@@ -722,3 +722,13 @@
 .origen-card small.origen-pagado {
   color: var(--verde);
 }
+
+.origen-card small.origen-vencimiento {
+  color: var(--texto-suave);
+}
+
+.origen-card small.origen-vencimiento.urgente {
+  color: var(--peligro);
+
+  font-weight: 600;
+}

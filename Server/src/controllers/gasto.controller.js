@@ -1,4 +1,5 @@
 import {
+  consultarVencimiento,
   generarCuotasSiguientes,
   listarGastosMensuales,
   guardarCambios,
@@ -20,6 +21,25 @@ export const getGastos = async (req, res) => {
   );
 
     res.json(gastos);
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const getVencimiento = async (req, res) => {
+  try {
+    const { origenId, anio, mes } = req.query;
+
+    const fecha = await consultarVencimiento(
+      req.usuario.id,
+      origenId,
+      anio,
+      mes
+    );
+
+    res.json({ fecha });
   } catch (error) {
     res.status(400).json({
       error: error.message,
@@ -59,6 +79,7 @@ export const postCambiosGastos = async (
       crear = [],
       actualizar = [],
       eliminar = [],
+      vencimiento = null,
     } = req.body;
 
     const resultado = await guardarCambios(
@@ -68,6 +89,7 @@ export const postCambiosGastos = async (
         crear,
         actualizar,
         eliminar,
+        vencimiento,
       }
     );
 

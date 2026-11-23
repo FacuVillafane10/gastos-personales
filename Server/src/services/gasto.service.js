@@ -1,6 +1,7 @@
 import {
   cargarCuotasSiguientes,
   obtenerGastosMensuales,
+  obtenerVencimiento,
   guardarCambiosGastos,
 } from "../repositories/gasto.repository.js";
 
@@ -186,6 +187,47 @@ export const generarCuotasSiguientes = async (
   );
 };
 
+export const consultarVencimiento = async (
+  usuarioId,
+  origenId,
+  anio,
+  mes
+) => {
+  const id = validarOrigenId(origenId);
+
+  const periodo = validarPeriodo(anio, mes);
+
+  return await obtenerVencimiento(
+    usuarioId,
+    id,
+    periodo.anio,
+    periodo.mes
+  );
+};
+
+// { anio, mes, fecha }: fecha "AAAA-MM-DD" o null para borrarla.
+const normalizarVencimiento = (vencimiento) => {
+  if (!vencimiento) return null;
+
+  const periodo = validarPeriodo(
+    vencimiento.anio,
+    vencimiento.mes
+  );
+
+  const fecha = vencimiento.fecha || null;
+
+  if (
+    fecha !== null &&
+    (typeof fecha !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(fecha) ||
+      Number.isNaN(Date.parse(fecha)))
+  ) {
+    throw new Error("La fecha de vencimiento es inválida");
+  }
+
+  return { ...periodo, fecha };
+};
+
 export const guardarCambios = async (
   usuarioId,
   origenId,
@@ -220,9 +262,12 @@ export const guardarCambios = async (
 
   return await guardarCambiosGastos(
     usuarioId,
-    id, {    
+    id, {
     crear,
     actualizar,
     eliminar,
+    vencimiento: normalizarVencimiento(
+      cambios.vencimiento
+    ),
   });
 };

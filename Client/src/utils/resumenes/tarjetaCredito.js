@@ -472,6 +472,54 @@ const buscarFechaTrasEtiqueta = (lineas, etiqueta) => {
 // LECTOR
 // ============================
 
+// Vencimiento del resumen: en Visa y Mastercard, la fecha que va
+// debajo de "VENCIMIENTO  SALDO $" (en esa línea o las siguientes); en
+// Naranja X, "y vence el 10/11/26".
+const RE_FECHA_TEXTO =
+  /\b(\d{1,2})\s+([A-Za-zÁÉÍÓÚáéíóú]{3,10})\.?\s+(\d{2}|\d{4})\b/;
+
+const buscarVencimiento = (lineas) => {
+  for (const linea of lineas) {
+    const coincidencia = linea.texto.match(
+      /vence el (\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})\b/i
+    );
+
+    if (coincidencia) {
+      const fecha = {
+        dia: Number(coincidencia[1]),
+        mes: Number(coincidencia[2]),
+        anio: anioCompleto(coincidencia[3]),
+      };
+
+      if (fechaValida(fecha)) return fecha;
+    }
+  }
+
+  for (let i = 0; i < lineas.length; i++) {
+    if (!/VENCIMIENTO\s+SALDO/i.test(lineas[i].texto)) continue;
+
+    for (const linea of lineas.slice(i + 1, i + 4)) {
+      const coincidencia = linea.texto
+        .replace(/\s+/g, " ")
+        .match(RE_FECHA_TEXTO);
+
+      const mes = coincidencia && numeroDeMes(coincidencia[2]);
+
+      if (mes) {
+        const fecha = {
+          dia: Number(coincidencia[1]),
+          mes,
+          anio: anioCompleto(coincidencia[3]),
+        };
+
+        if (fechaValida(fecha)) return fecha;
+      }
+    }
+  }
+
+  return null;
+};
+
 const ultimaFecha = (movimientos) =>
   movimientos
     .map((movimiento) => movimiento.fechaCompra)
@@ -535,12 +583,53 @@ export const leerResumenTarjeta = (lineas) => {
   // dos la nota de crédito y el IVA de "Otros cargos").
   let pendiente = null;
 
+  // Titular de la tarjeta (adicionales): undefined mientras no se sepa,
+  // null para los cargos generales de la cuenta.
+  let titularActual = undefined;
+
+  let inicioSeccion = 0;
+
   for (const linea of lineas) {
     const texto = linea.texto.replace(/\s+/g, " ").trim();
 
     const anterior = pendiente;
 
     pendiente = null;
+
+    // Naranja X: cada titular empieza con "Consumos tarjeta de crédito
+    // de Camila"; "Otros cargos" ya no es de ningún titular.
+    const seccion = texto.match(
+      /Consumos tarjeta de cr[eé]dito de\s+(.+)$/i
+    );
+
+    if (seccion) {
+      titularActual = seccion[1].trim();
+
+      continue;
+    }
+
+    if (/^Otros\b/i.test(texto)) {
+      titularActual = null;
+    }
+
+    // Visa / Mastercard: el bloque de cada tarjeta termina con
+    // "Tarjeta 5045 Total Consumos de FACUNDO N ..." y lo de antes es
+    // de ese titular.
+    const cierreSeccion = texto.match(
+      /^TARJETA\s+\d+\s+Total\s+Consumos\s+de\s+(.+?)(?:\s+-?[\d.,]+-?)*(?:\s+_+)?$/i
+    );
+
+    if (cierreSeccion) {
+      for (let i = inicioSeccion; i < movimientos.length; i++) {
+        if (movimientos[i].titular === undefined) {
+          movimientos[i].titular = cierreSeccion[1].trim();
+        }
+      }
+
+      inicioSeccion = movimientos.length;
+
+      continue;
+    }
 
     const total = texto.match(
       /total a pagar es \$?\s?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})/i
@@ -650,7 +739,16 @@ export const leerResumenTarjeta = (lineas) => {
       monto,
       moneda: usaDolares ? "USD" : "ARS",
       tipo,
+      titular: titularActual,
     });
+  }
+
+  // Lo que quedó sin titular (impuestos y cargos de la cuenta, o
+  // resúmenes sin bloques por tarjeta) va a "cargos generales".
+  for (const movimiento of movimientos) {
+    if (movimiento.titular === undefined) {
+      movimiento.titular = null;
+    }
   }
 
   // Control: lo detectado en pesos debería explicar la diferencia
@@ -687,6 +785,7 @@ export const leerResumenTarjeta = (lineas) => {
     // Sin fecha de cierre en el encabezado (Naranja X), se usa la
     // última fecha del detalle.
     cierre: cierre || ultimaFecha(movimientos),
+    vencimiento: buscarVencimiento(lineas),
     movimientos,
     control,
   };

@@ -8,7 +8,30 @@ const claveUsuario = (conClaveForanea) =>
     ? "REFERENCES usuarios(id) ON DELETE CASCADE"
     : "";
 
+const claveOrigen = (conClaveForanea) =>
+  conClaveForanea
+    ? "REFERENCES origenes_gasto(id) ON DELETE CASCADE"
+    : "";
+
 const TABLAS = [
+  {
+    // Fecha de vencimiento del resumen de un origen en un mes (ej. la
+    // tarjeta vence el 11/11). Se toma del PDF o se carga a mano.
+    nombre: "vencimientos",
+
+    sql: (conClaveForanea) => `
+      CREATE TABLE IF NOT EXISTS vencimientos (
+        id         SERIAL PRIMARY KEY,
+        usuario_id INTEGER NOT NULL ${claveUsuario(conClaveForanea)},
+        origen_id  INTEGER NOT NULL ${claveOrigen(conClaveForanea)},
+        anio       INTEGER NOT NULL,
+        mes        INTEGER NOT NULL CHECK (mes BETWEEN 1 AND 12),
+        fecha      DATE NOT NULL,
+        UNIQUE (usuario_id, origen_id, anio, mes)
+      );
+    `,
+  },
+
   {
     nombre: "ingresos",
 
