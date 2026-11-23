@@ -21,6 +21,7 @@ import { obtenerFechaSugerida } from "../utils/fechas";
 import { formatearMonto } from "../utils/moneda";
 
 import ConfirmarSalida from "../components/ConfirmarSalida";
+import CampoImporte from "../components/CampoImporte";
 import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
 
 const nombresMeses = [
@@ -701,11 +702,8 @@ const Ahorros = () => {
 
                     <td data-label="Importe">
 
-                      <input
-                        type="number"
-                        min="0"
-                        inputMode="decimal"
-                        step="0.01"
+                      <CampoImporte
+                        aria-label="Importe"
                         value={movimiento.monto}
                         placeholder={
                           movimiento.tipo ===
@@ -713,11 +711,11 @@ const Ahorros = () => {
                             ? "US$ obtenidos"
                             : "0"
                         }
-                        onChange={(event) =>
+                        onChange={(valor) =>
                           actualizarCampo(
                             movimiento.id,
                             "monto",
-                            event.target.value
+                            valor
                           )
                         }
                       />
@@ -737,18 +735,15 @@ const Ahorros = () => {
                       {movimiento.tipo ===
                       "compra_usd" ? (
 
-                        <input
-                          type="number"
-                          min="0"
-                          inputMode="decimal"
-                          step="0.01"
+                        <CampoImporte
+                          aria-label="Pesos pagados"
                           value={movimiento.montoPesos}
                           placeholder="$ pagados"
-                          onChange={(event) =>
+                          onChange={(valor) =>
                             actualizarCampo(
                               movimiento.id,
                               "montoPesos",
-                              event.target.value
+                              valor
                             )
                           }
                         />

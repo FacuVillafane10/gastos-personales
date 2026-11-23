@@ -21,6 +21,7 @@ import { emparejarPorDescripcion } from "../utils/copiarGastos";
 import { obtenerFechaSugerida } from "../utils/fechas";
 
 import ConfirmarSalida from "../components/ConfirmarSalida";
+import CampoImporte from "../components/CampoImporte";
 import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
 
 const nombresMeses = [
@@ -690,18 +691,15 @@ const Ingresos = () => {
 
                     <td data-label="Importe">
 
-                      <input
-                        type="number"
-                        min="0"
-                        inputMode="decimal"
-                        step="0.01"
+                      <CampoImporte
                         value={ingreso.monto}
                         placeholder="0"
-                        onChange={(event) =>
+                        aria-label="Importe"
+                        onChange={(valor) =>
                           actualizarCampo(
                             ingreso.id,
                             "monto",
-                            event.target.value
+                            valor
                           )
                         }
                       />

@@ -7,6 +7,8 @@ import {
 
 import { obtenerFechaSugerida } from "../utils/fechas";
 
+import CampoImporte from "./CampoImporte";
+
 const CLAVE_ULTIMO_ORIGEN = "gastoRapido.ultimoOrigen";
 
 const leerUltimoOrigen = () => {
@@ -239,20 +241,14 @@ const GastoRapido = ({
               Importe
             </label>
 
-            <input
+            <CampoImporte
               id="gastoRapidoMonto"
               ref={campoMonto}
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
               className="campo-input campo-importe"
               placeholder="0"
               value={monto}
               autoFocus
-              onChange={(event) =>
-                setMonto(event.target.value)
-              }
+              onChange={setMonto}
             />
 
           </div>

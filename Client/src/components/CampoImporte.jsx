@@ -43,9 +43,17 @@ const CampoImporte = ({
 
   const numero = Number(value);
 
+  // Si el valor cambió desde afuera mientras se edita (ej. se vació al
+  // guardar), se muestra el valor nuevo y no lo que se había escrito.
+  const sincronizado =
+    editando !== null &&
+    normalizarImporte(editando) === String(value ?? "");
+
   const mostrado =
     editando !== null
-      ? editando
+      ? sincronizado
+        ? editando
+        : aTextoEditable(value)
       : value === "" || !Number.isFinite(numero)
         ? ""
         : formatear.format(numero);
