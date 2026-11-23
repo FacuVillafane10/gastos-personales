@@ -999,25 +999,45 @@
 }
 
 .boton-marcar-todos {
-  margin-top: 4px;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 
-  border: none;
+  margin-top: 8px;
+  padding: 6px 12px;
 
-  background: none;
-  color: var(--azul);
+  border: 1px solid rgba(34, 229, 143, 0.45);
+  border-radius: 999px;
+
+  background: var(--exito-fondo);
+  color: var(--verde);
 
   font-family: inherit;
   font-size: 12px;
-
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-weight: 600;
 
   cursor: pointer;
 }
 
 .boton-marcar-todos:hover {
-  color: var(--texto);
+  border-color: var(--verde);
+
+  background: rgba(34, 229, 143, 0.18);
+}
+
+/* "Desmarcar todos": menos llamativo */
+.boton-marcar-todos.desmarcar {
+  border-color: var(--borde-fuerte);
+
+  background: transparent;
+  color: var(--texto-suave);
+}
+
+.boton-marcar-todos.desmarcar:hover {
+  border-color: var(--peligro);
+
+  background: var(--peligro-fondo);
+  color: var(--peligro);
 }
 
 .tabla-gastos td.celda-pagado {

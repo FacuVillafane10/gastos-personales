@@ -1228,7 +1228,11 @@ const Movimientos = () => {
 
               <button
                 type="button"
-                className="boton-marcar-todos"
+                className={
+                  totalPendiente > 0
+                    ? "boton-marcar-todos"
+                    : "boton-marcar-todos desmarcar"
+                }
                 onClick={() =>
                   marcarTodosPagados(
                     totalPendiente > 0
@@ -1236,7 +1240,7 @@ const Movimientos = () => {
                 }
               >
                 {totalPendiente > 0
-                  ? "Marcar todos como pagados"
+                  ? "✓ Marcar todos como pagados"
                   : "Desmarcar todos"}
               </button>
 
