@@ -173,13 +173,21 @@ export const listarGastosMensuales = async (
 
   const periodo = validarPeriodo(anio, mes);
 
-  // Al abrir el mes se cargan los gastos fijos que falten.
-  await generarFijos(
-    usuarioId,
-    periodo.anio,
-    periodo.mes,
-    id
-  );
+  // Al abrir el mes se cargan los gastos fijos que falten. Si falla,
+  // se muestran igual los gastos.
+  try {
+    await generarFijos(
+      usuarioId,
+      periodo.anio,
+      periodo.mes,
+      id
+    );
+  } catch (error) {
+    console.error(
+      "No se pudieron cargar los gastos fijos:",
+      error.message
+    );
+  }
 
   const gastos = await obtenerGastosMensuales(
     usuarioId,

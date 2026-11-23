@@ -105,8 +105,16 @@ export const generarResumenMensual = async (
     throw new Error("El mes es inválido");
   }
 
-  // Al abrir el mes se cargan los gastos fijos que falten.
-  await generarFijos(usuarioId, anioNumero, mesNumero);
+  // Al abrir el mes se cargan los gastos fijos que falten. Si falla,
+  // el resumen se muestra igual.
+  try {
+    await generarFijos(usuarioId, anioNumero, mesNumero);
+  } catch (error) {
+    console.error(
+      "No se pudieron cargar los gastos fijos:",
+      error.message
+    );
+  }
 
   const origenes = await obtenerResumenMensual(
     usuarioId,
