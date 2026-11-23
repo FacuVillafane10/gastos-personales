@@ -723,6 +723,92 @@
   color: var(--verde);
 }
 
+/* =========================
+   PRÓXIMOS VENCIMIENTOS
+========================= */
+
+.vencimientos {
+  margin-bottom: 24px;
+}
+
+.vencimientos h3 {
+  margin: 0 0 10px;
+}
+
+.vencimientos ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.vencimiento-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "origen monto"
+    "fecha monto";
+  gap: 2px 12px;
+
+  width: 100%;
+
+  padding: 12px 16px;
+
+  border: 1px solid var(--borde);
+  border-left: 3px solid #f5b84a;
+  border-radius: 12px;
+
+  background: var(--superficie);
+  color: var(--texto);
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.vencimiento-item:hover {
+  border-color: var(--borde-fuerte);
+  border-left-color: #f5b84a;
+}
+
+.vencimiento-item.urgente {
+  border-left-color: var(--peligro);
+}
+
+.vencimiento-origen {
+  grid-area: origen;
+
+  font-weight: 600;
+}
+
+.vencimiento-fecha {
+  grid-area: fecha;
+
+  color: var(--texto-suave);
+
+  font-size: 13px;
+}
+
+.vencimiento-item.urgente .vencimiento-fecha {
+  color: var(--peligro);
+
+  font-weight: 600;
+}
+
+.vencimiento-monto {
+  grid-area: monto;
+
+  align-self: center;
+
+  font-family: var(--fuente-mono);
+  font-size: 16px;
+}
+
 .origen-card small.origen-vencimiento {
   color: var(--texto-suave);
 }

@@ -818,6 +818,77 @@ const handleCerrarSesion = async () => {
           </section>
 
 
+          {/* PRÓXIMOS VENCIMIENTOS (lo que falta pagar) */}
+
+          {(() => {
+            const pendientes = resumen.origenes
+              .filter(
+                (origen) =>
+                  origen.vencimiento &&
+                  origen.total >
+                    (origen.pagado ?? 0)
+              )
+              .sort((a, b) =>
+                a.vencimiento.localeCompare(
+                  b.vencimiento
+                )
+              );
+
+            if (pendientes.length === 0) {
+              return null;
+            }
+
+            return (
+              <section className="vencimientos">
+
+                <h3>
+                  Próximos vencimientos
+                </h3>
+
+                <ul>
+                  {pendientes.map((origen) => (
+                    <li key={origen.id}>
+                      <button
+                        type="button"
+                        className={
+                          vencimientoUrgente(
+                            origen.vencimiento
+                          )
+                            ? "vencimiento-item urgente"
+                            : "vencimiento-item"
+                        }
+                        onClick={() =>
+                          navigate(
+                            `/origen/${origen.id}?anio=${anio}&mes=${mes}`
+                          )
+                        }
+                      >
+                        <span className="vencimiento-origen">
+                          {origen.nombre}
+                        </span>
+
+                        <span className="vencimiento-fecha">
+                          {textoVencimiento(
+                            origen.vencimiento
+                          )}
+                        </span>
+
+                        <strong className="vencimiento-monto">
+                          {formatearDinero(
+                            origen.total -
+                              (origen.pagado ?? 0)
+                          )}
+                        </strong>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+              </section>
+            );
+          })()}
+
+
           {/* RESUMEN POR ORIGEN */}
 
           <section className="resumen">

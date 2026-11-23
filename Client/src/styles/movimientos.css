@@ -168,7 +168,8 @@
   outline: none;
 }
 
-.tabla-gastos input[type="number"] {
+.tabla-gastos input[type="number"],
+.tabla-gastos input.campo-importe-tabla {
   font-family: var(--fuente-mono);
 }
 
@@ -674,7 +675,7 @@
   cursor: pointer;
 }
 
-.tabla-importar input[type="number"],
+.tabla-importar input.campo-importe-tabla,
 .tabla-importar select {
   width: 100%;
   min-width: 110px;
@@ -691,7 +692,7 @@
   font-size: 13px;
 }
 
-.tabla-importar input[type="number"] {
+.tabla-importar input.campo-importe-tabla {
   font-family: var(--fuente-mono);
 }
 
@@ -979,7 +980,7 @@
     grid-area: categoria;
   }
 
-  .tabla-importar input[type="number"],
+  .tabla-importar input.campo-importe-tabla,
   .tabla-importar select {
     min-width: 0;
   }
@@ -990,7 +991,7 @@
     overflow-wrap: anywhere;
   }
 
-  .tabla-importar input[type="number"],
+  .tabla-importar input.campo-importe-tabla,
   .tabla-importar select {
     font-size: 16px;
   }

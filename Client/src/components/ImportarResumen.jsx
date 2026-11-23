@@ -1,6 +1,7 @@
 import { Fragment, useState } from "react";
 
 import CampoPassword from "./CampoPassword";
+import CampoImporte from "./CampoImporte";
 
 import {
   aplicarReglas,
@@ -705,16 +706,12 @@ const ImportarResumen = ({
                             {formatearMonto(fila.monto)}
                           </span>
                         ) : (
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            step="0.01"
-                            min="0"
+                          <CampoImporte
                             aria-label={`Importe de ${fila.descripcion}`}
                             value={fila.montoCarga}
-                            onChange={(event) =>
+                            onChange={(valor) =>
                               cambiarFila(fila.clave, {
-                                montoCarga: event.target.value,
+                                montoCarga: valor,
                               })
                             }
                           />

@@ -33,6 +33,7 @@ import {
 } from "../utils/fechas";
 
 import ConfirmarSalida from "../components/ConfirmarSalida";
+import CampoImporte from "../components/CampoImporte";
 import ImportarResumen from "../components/ImportarResumen";
 import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
 
@@ -1995,24 +1996,19 @@ const Movimientos = () => {
 
                       <td data-label="Importe">
 
-                        <input
-                          type="number"
-                          min="0"
-                          inputMode="decimal"
-                          step="0.01"
+                        <CampoImporte
                           value={
                             gasto.monto
                           }
                           placeholder="0"
+                          aria-label="Importe"
                           onChange={(
-                            event
+                            valor
                           ) =>
                             actualizarCampo(
                               gasto.id,
                               "monto",
-                              event
-                                .target
-                                .value
+                              valor
                             )
                           }
                         />
