@@ -73,6 +73,13 @@ const crearCuotasFuturas = async (
       continue;
     }
 
+    // Naranja X agrupa las cuotas 2/3 y 3/3 del Plan Z en una línea
+    // "ZETA OCT/26". Esas cuotas ya se cargaron desde cada compra (1/3),
+    // así que la línea agrupada no genera las siguientes.
+    if (/^ZETA\s+[A-Z]{3}\/\d{2}$/i.test(gasto.descripcion.trim())) {
+      continue;
+    }
+
     for (
       let meses = 1;
       gasto.cuotaActual + meses <= gasto.cuotasTotales;

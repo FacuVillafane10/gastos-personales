@@ -174,6 +174,9 @@ export const armarGastos = ({
         compra +
         resumen +
         otroNombre +
+        (movimiento.montoTotal
+          ? ` · Plan Z: total $${movimiento.montoTotal} en 3 cuotas`
+          : "") +
         (movimiento.moneda === "USD"
           ? ` · consumo de US$ ${movimiento.monto}`
           : ""),

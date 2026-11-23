@@ -716,11 +716,25 @@ export const leerResumenTarjeta = (lineas) => {
       continue;
     }
 
-    const cuota = esImpuesto ? null : leerCuota(descripcion);
-
     const usaDolares = !pesos && dolares;
 
-    const monto = usaDolares ? dolares : pesos;
+    const importe = usaDolares ? dolares : pesos;
+
+    // Naranja X, Plan Z: el importe es el total de la compra y se paga
+    // en 3 cuotas; esta es la 1/3 (las siguientes aparecen agrupadas
+    // como "ZETA OCT/26 02/03").
+    const esZeta =
+      /\sZeta$/i.test(resto.trim()) && importe > 0 && !usaDolares;
+
+    const cuota = esZeta
+      ? { actual: 1, total: 3, texto: "" }
+      : esImpuesto
+        ? null
+        : leerCuota(descripcion);
+
+    const monto = esZeta
+      ? Math.round((importe / 3) * 100) / 100
+      : importe;
 
     let tipo = "consumo";
 
@@ -737,6 +751,8 @@ export const leerResumenTarjeta = (lineas) => {
       cuotaActual: cuota ? cuota.actual : null,
       cuotasTotales: cuota ? cuota.total : null,
       monto,
+      // Total de la compra en Plan Z (para el control y observaciones)
+      ...(esZeta && { montoTotal: importe }),
       moneda: usaDolares ? "USD" : "ARS",
       tipo,
       titular: titularActual,
@@ -758,7 +774,11 @@ export const leerResumenTarjeta = (lineas) => {
 
   const detectado = movimientos
     .filter((movimiento) => movimiento.moneda === "ARS")
-    .reduce((suma, movimiento) => suma + movimiento.monto, 0);
+    .reduce(
+      (suma, movimiento) =>
+        suma + (movimiento.montoTotal ?? movimiento.monto),
+      0
+    );
 
   const redondear = (valor) => Math.round(valor * 100) / 100;
 
