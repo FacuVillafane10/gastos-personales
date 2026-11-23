@@ -184,7 +184,7 @@ const RE_PAGO =
   /SU PAGO|PAGO EN (PESOS|D[OÓ]LARES)|TRANSFERENCIA DEUDA/i;
 
 const RE_IMPUESTO =
-  /^(IVA|IMP\b|IMP\.|IMPUESTO|IMPTO|PERC|DB\.?\s?RG|RG\s?\d|IIBB|ING\.? ?BRUTOS|INTERES|COMISI[OÓ]N|COM\.|CARGO|SEGURO|SELLOS|DERECHO|MANTENIMIENTO|SERVICIO DE|RENOVACI[OÓ]N)/i;
+  /^(IVA|IMP\b|IMP\.|IMPUESTO|IMPTO|PERC|DB\b|DB\.?\s?RG|RG\s?\d|IIBB|ING\.? ?BRUTOS|INTERES|COMISI[OÓ]N|COM\.|CARGO|SEGURO|SELLOS|DERECHO|MANTENIMIENTO|SERVICIO DE|RENOVACI[OÓ]N)/i;
 
 // Tasas y textos legales que también traen números.
 const RE_LEGALES = /\b(TNA|TEA|CFT|CFTEA|TASA)\b/i;
@@ -259,50 +259,80 @@ const buscarColumnas = (lineas) => {
 };
 
 // Separa los importes del final de la línea y decide si son pesos o
-// dólares según la columna (o, sin encabezado, el primero es pesos).
+// dólares. Con encabezado, cada importe tiene que estar alineado a una
+// de las dos columnas: los que quedan en el medio (base de un impuesto,
+// importe original en otra moneda) vuelven a la descripción. Sin
+// encabezado, el primero es pesos y el segundo dólares.
 const separarImportes = (linea, columnas) => {
   const tokens = linea.texto.trim().split(/\s+/);
+
+  // subrayados que el PDF dibuja con "_" al final de algunas líneas
+  while (tokens.length > 0 && /^_+$/.test(tokens[tokens.length - 1])) {
+    tokens.pop();
+  }
 
   const importes = [];
 
   while (
     tokens.length > 0 &&
-    importes.length < 2 &&
+    importes.length < 3 &&
     RE_IMPORTE.test(tokens[tokens.length - 1])
   ) {
     importes.unshift(tokens.pop());
   }
 
   // "$ 1.234,56" o "U$S 10,00" al final: el símbolo queda suelto
-  while (
-    tokens.length > 0 &&
-    /^(\$|U\$S|USD)$/i.test(tokens[tokens.length - 1])
-  ) {
-    tokens.pop();
-  }
+  const quitarSimbolos = () => {
+    while (
+      tokens.length > 0 &&
+      /^(\$|U\$S|USD)$/i.test(tokens[tokens.length - 1])
+    ) {
+      tokens.pop();
+    }
+  };
 
   let pesos = null;
 
   let dolares = null;
 
-  if (importes.length === 2) {
-    pesos = parsearImporte(importes[0]);
-    dolares = parsearImporte(importes[1]);
-  } else if (importes.length === 1) {
-    const valor = parsearImporte(importes[0]);
+  const celdas = columnas
+    ? buscarCeldasDeImportes(linea.celdas, importes)
+    : null;
 
-    const celda = [...linea.celdas]
-      .reverse()
-      .find((c) => c.texto.trim().endsWith(importes[0]));
+  if (celdas) {
+    const tolerancia = (columnas.dolares - columnas.pesos) / 2;
 
-    const esDolar =
-      columnas && celda
-        ? Math.abs(bordeDerecho(celda) - columnas.dolares) <
-          Math.abs(bordeDerecho(celda) - columnas.pesos)
-        : /U\$S|USD/i.test(linea.texto);
+    const sueltos = [];
 
-    if (esDolar) dolares = valor;
-    else pesos = valor;
+    importes.forEach((importe, indice) => {
+      const borde = bordeDerecho(celdas[indice]);
+
+      if (Math.abs(borde - columnas.pesos) <= tolerancia) {
+        pesos = parsearImporte(importe);
+      } else if (Math.abs(borde - columnas.dolares) <= tolerancia) {
+        dolares = parsearImporte(importe);
+      } else {
+        sueltos.push(importe);
+      }
+    });
+
+    quitarSimbolos();
+
+    tokens.push(...sueltos);
+
+    quitarSimbolos();
+  } else {
+    quitarSimbolos();
+
+    if (importes.length >= 2) {
+      pesos = parsearImporte(importes[importes.length - 2]);
+      dolares = parsearImporte(importes[importes.length - 1]);
+    } else if (importes.length === 1) {
+      const valor = parsearImporte(importes[0]);
+
+      if (/U\$S|USD/i.test(linea.texto)) dolares = valor;
+      else pesos = valor;
+    }
   }
 
   return {
@@ -310,6 +340,31 @@ const separarImportes = (linea, columnas) => {
     pesos,
     dolares,
   };
+};
+
+// Busca, de derecha a izquierda, la celda de cada importe (una distinta
+// para cada uno). Si alguno no aparece, devuelve null.
+const buscarCeldasDeImportes = (celdas, importes) => {
+  const resultado = [];
+
+  let hasta = celdas.length - 1;
+
+  for (let i = importes.length - 1; i >= 0; i--) {
+    while (
+      hasta >= 0 &&
+      !celdas[hasta].texto.trim().endsWith(importes[i])
+    ) {
+      hasta--;
+    }
+
+    if (hasta < 0) return null;
+
+    resultado[i] = celdas[hasta];
+
+    hasta--;
+  }
+
+  return resultado;
 };
 
 // ============================

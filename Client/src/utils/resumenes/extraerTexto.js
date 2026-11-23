@@ -81,11 +81,21 @@ const cargarPdfjs = async () => {
     pdfjsCargado = Promise.all([
       import("pdfjs-dist"),
       import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-    ]).then(([pdfjs, worker]) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+    ])
+      .then(([pdfjs, worker]) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
 
-      return pdfjs;
-    });
+        return pdfjs;
+      })
+      .catch(() => {
+        // Si se publicó una versión nueva con la página abierta, los
+        // archivos viejos de pdf.js ya no existen.
+        pdfjsCargado = null;
+
+        throw new Error(
+          "Hay una versión nueva de la app. Recargá la página y volvé a intentar."
+        );
+      });
   }
 
   return pdfjsCargado;
