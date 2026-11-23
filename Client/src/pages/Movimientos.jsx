@@ -25,6 +25,7 @@ import {
 import { obtenerFechaSugerida } from "../utils/fechas";
 
 import ConfirmarSalida from "../components/ConfirmarSalida";
+import ImportarResumen from "../components/ImportarResumen";
 import { useAvisoAlCerrar } from "../hooks/useAvisoAlCerrar";
 
 const nombresMeses = [
@@ -222,6 +223,87 @@ const Movimientos = () => {
   }, [id, anio, mes]);
 
   // ============================
+  // AGREGAR FILAS COPIADAS O IMPORTADAS
+  // ============================
+
+  // Agrega filas sin guardar a la grilla (copiadas o importadas). Si
+  // ya existe una fila con la misma descripción, se pisa con los datos
+  // nuevos; las demás se agregan como filas nuevas. Devuelve el
+  // detalle de nuevos/actualizados para el mensaje.
+  const incorporarFilas = (nuevas) => {
+    const filas = [...gastos];
+
+    let actualizados = 0;
+
+    let agregados = 0;
+
+    for (const {
+      copia,
+      existente,
+    } of emparejarPorDescripcion(
+      nuevas,
+      gastos
+    )) {
+      if (!existente) {
+        filas.push({
+          id: crypto.randomUUID(),
+          ...copia,
+          esNuevo: true,
+          modificado: true,
+        });
+
+        agregados++;
+
+        continue;
+      }
+
+      const indice = filas.findIndex(
+        (fila) => fila.id === existente.id
+      );
+
+      filas[indice] = {
+        ...existente,
+        ...copia,
+        modificado: true,
+      };
+
+      actualizados++;
+    }
+
+    setGastos(filas);
+
+    setError("");
+
+    return actualizados > 0
+      ? ` (${agregados} nuevo${
+          agregados === 1 ? "" : "s"
+        } y ${actualizados} actualizado${
+          actualizados === 1 ? "" : "s"
+        })`
+      : "";
+  };
+
+  // ============================
+  // IMPORTAR RESUMEN PDF
+  // ============================
+
+  const [modalImportar, setModalImportar] =
+    useState(false);
+
+  const handleImportarResumen = (nuevos) => {
+    const detalle =
+      incorporarFilas(nuevos);
+
+    setMensaje(
+      `Se importaron ${nuevos.length} gasto${
+        nuevos.length === 1 ? "" : "s"
+      } del resumen${detalle}. Revisalos y tocá "Guardar cambios".`
+    );
+
+    setModalImportar(false);
+  };
+
+  // ============================
   // COPIAR GASTOS DE OTRO MES
   // ============================
 
@@ -296,59 +378,8 @@ const Movimientos = () => {
         return;
       }
 
-      // Si ya existe una fila con la misma descripción, se pisa con
-      // los datos copiados; las demás se agregan como filas nuevas.
-      const filas = [...gastos];
-
-      let actualizados = 0;
-
-      let agregados = 0;
-
-      for (const {
-        copia,
-        existente,
-      } of emparejarPorDescripcion(
-        copias,
-        gastos
-      )) {
-        if (!existente) {
-          filas.push({
-            id: crypto.randomUUID(),
-            ...copia,
-            esNuevo: true,
-            modificado: true,
-          });
-
-          agregados++;
-
-          continue;
-        }
-
-        const indice = filas.findIndex(
-          (fila) => fila.id === existente.id
-        );
-
-        filas[indice] = {
-          ...existente,
-          ...copia,
-          modificado: true,
-        };
-
-        actualizados++;
-      }
-
-      setGastos(filas);
-
-      setError("");
-
       const detalle =
-        actualizados > 0
-          ? ` (${agregados} nuevo${
-              agregados === 1 ? "" : "s"
-            } y ${actualizados} actualizado${
-              actualizados === 1 ? "" : "s"
-            })`
-          : "";
+        incorporarFilas(copias);
 
       const aviso =
         cuotasFinalizadas > 0
@@ -989,6 +1020,16 @@ const Movimientos = () => {
 
             <button
               type="button"
+              className="boton-secundario"
+              onClick={() =>
+                setModalImportar(true)
+              }
+            >
+              Importar resumen PDF
+            </button>
+
+            <button
+              type="button"
               className="boton-agregar"
               onClick={
                 agregarFila
@@ -1030,6 +1071,16 @@ const Movimientos = () => {
               }
             >
               Copiar de otro mes
+            </button>
+
+            <button
+              type="button"
+              className="boton-secundario"
+              onClick={() =>
+                setModalImportar(true)
+              }
+            >
+              Importar resumen PDF
             </button>
 
           </div>
@@ -1723,6 +1774,26 @@ const Movimientos = () => {
           </div>
 
         </div>
+
+      )}
+
+
+      {/* MODAL IMPORTAR RESUMEN PDF */}
+
+      {modalImportar && (
+
+        <ImportarResumen
+          anio={anio}
+          mes={mes}
+          nombreMes={nombresMeses[mes - 1]}
+          categorias={categorias}
+          onCerrar={() =>
+            setModalImportar(false)
+          }
+          onImportar={
+            handleImportarResumen
+          }
+        />
 
       )}
 

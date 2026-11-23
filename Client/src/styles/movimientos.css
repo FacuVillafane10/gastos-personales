@@ -513,3 +513,203 @@
     background: rgba(245, 184, 74, 0.07);
   }
 }
+
+
+/* =========================
+   IMPORTAR RESUMEN PDF
+========================= */
+
+.modal.modal-importar {
+  max-width: 920px;
+  max-height: calc(100dvh - 40px);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.importar-clave {
+  margin-top: 16px;
+}
+
+.importar-control {
+  margin: 0 0 14px;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(245, 184, 74, 0.35);
+  border-radius: 9px;
+
+  background: rgba(245, 184, 74, 0.08);
+  color: #f5b84a;
+
+  font-size: 13px;
+}
+
+.importar-control.ok {
+  border-color: rgba(34, 229, 143, 0.3);
+
+  background: var(--exito-fondo);
+  color: var(--verde);
+}
+
+.importar-tabla-wrapper {
+  min-height: 0;
+
+  overflow: auto;
+
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
+}
+
+.tabla-importar {
+  width: 100%;
+
+  border-collapse: collapse;
+
+  font-size: 13px;
+}
+
+.tabla-importar th {
+  position: sticky;
+  top: 0;
+
+  padding: 10px 8px;
+
+  border-bottom: 1px solid var(--borde-fuerte);
+
+  background: var(--superficie-2);
+  color: var(--texto-tenue);
+
+  text-align: left;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.tabla-importar td {
+  padding: 6px 8px;
+
+  border-bottom: 1px solid var(--borde);
+
+  vertical-align: middle;
+}
+
+.tabla-importar tr.fila-apagada td {
+  opacity: 0.5;
+}
+
+.tabla-importar input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+
+  accent-color: var(--verde);
+
+  cursor: pointer;
+}
+
+.tabla-importar input[type="number"],
+.tabla-importar select {
+  width: 100%;
+  min-width: 110px;
+
+  padding: 8px;
+
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+
+  background: var(--bg-elevado);
+  color: var(--texto);
+
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.tabla-importar input[type="number"] {
+  font-family: var(--fuente-mono);
+}
+
+.tabla-importar select option {
+  background: var(--superficie-2);
+  color: var(--texto);
+}
+
+.importar-fecha,
+.importar-cuota,
+.importar-credito {
+  font-family: var(--fuente-mono);
+
+  white-space: nowrap;
+}
+
+.importar-credito {
+  color: var(--texto-tenue);
+}
+
+.importar-descripcion {
+  display: block;
+
+  min-width: 160px;
+}
+
+.importar-tipo {
+  display: inline-block;
+
+  margin-top: 4px;
+
+  padding: 2px 7px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 999px;
+
+  color: var(--texto-suave);
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.importar-tipo.tipo-dolares {
+  border-color: rgba(61, 165, 255, 0.4);
+
+  color: var(--azul);
+}
+
+.importar-tipo.tipo-credito {
+  border-color: rgba(34, 229, 143, 0.35);
+
+  color: var(--verde);
+}
+
+.importar-acciones {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.importar-resumen-total {
+  margin-right: auto;
+
+  color: var(--texto-suave);
+
+  font-family: var(--fuente-mono);
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .modal.modal-importar {
+    padding: 20px 16px;
+  }
+
+  .tabla-importar input[type="number"],
+  .tabla-importar select {
+    font-size: 16px;
+  }
+
+  .importar-resumen-total {
+    width: 100%;
+  }
+}
