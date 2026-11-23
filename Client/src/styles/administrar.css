@@ -52,6 +52,42 @@
   font-size: 13px;
 }
 
+.admin-reglas {
+  margin-top: 24px;
+}
+
+.form-regla-admin {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr auto;
+  gap: 10px;
+
+  align-items: center;
+
+  margin-bottom: 8px;
+}
+
+.form-regla-admin .admin-error-fila {
+  grid-column: 1 / -1;
+}
+
+.regla-texto code {
+  padding: 2px 6px;
+
+  border-radius: 6px;
+
+  background: var(--bg-elevado);
+  color: var(--texto-suave);
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .form-regla-admin {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-alta {
   display: flex;
   gap: 10px;

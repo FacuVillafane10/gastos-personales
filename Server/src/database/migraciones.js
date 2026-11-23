@@ -13,6 +13,11 @@ const claveOrigen = (conClaveForanea) =>
     ? "REFERENCES origenes_gasto(id) ON DELETE CASCADE"
     : "";
 
+const claveCategoria = (conClaveForanea) =>
+  conClaveForanea
+    ? "REFERENCES categorias(id) ON DELETE SET NULL"
+    : "";
+
 const TABLAS = [
   {
     // Fecha de vencimiento del resumen de un origen en un mes (ej. la
@@ -28,6 +33,24 @@ const TABLAS = [
         mes        INTEGER NOT NULL CHECK (mes BETWEEN 1 AND 12),
         fecha      DATE NOT NULL,
         UNIQUE (usuario_id, origen_id, anio, mes)
+      );
+    `,
+  },
+
+  {
+    // "Si la descripción del banco empieza con PATRON → nombre y
+    // categoría" (se aplica al importar resúmenes).
+    nombre: "reglas_descripcion",
+
+    sql: (conClaveForanea) => `
+      CREATE TABLE IF NOT EXISTS reglas_descripcion (
+        id           SERIAL PRIMARY KEY,
+        usuario_id   INTEGER NOT NULL ${claveUsuario(conClaveForanea)},
+        patron       VARCHAR(100) NOT NULL,
+        nombre       VARCHAR(255),
+        categoria_id INTEGER ${claveCategoria(conClaveForanea)},
+        creado_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE (usuario_id, patron)
       );
     `,
   },

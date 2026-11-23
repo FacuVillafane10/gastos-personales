@@ -269,6 +269,32 @@ export const cargarCuotasSiguientes = async (
   }
 };
 
+// Última categoría usada para cada descripción (sin distinguir
+// mayúsculas), para sugerirla en gastos nuevos o importados.
+export const obtenerCategoriasSugeridas = async (usuarioId) => {
+  const { rows } = await pool.query(
+    `
+      SELECT DISTINCT ON (LOWER(TRIM(g.descripcion)))
+        LOWER(TRIM(g.descripcion)) AS descripcion,
+        g.categoria_id
+      FROM gastos g
+      JOIN categorias c
+        ON c.id = g.categoria_id
+        AND c.activo = TRUE
+      WHERE g.usuario_id = $1
+      ORDER BY
+        LOWER(TRIM(g.descripcion)),
+        g.fecha DESC,
+        g.id DESC
+    `,
+    [usuarioId]
+  );
+
+  return Object.fromEntries(
+    rows.map((fila) => [fila.descripcion, fila.categoria_id])
+  );
+};
+
 export const obtenerVencimiento = async (
   usuarioId,
   origenId,

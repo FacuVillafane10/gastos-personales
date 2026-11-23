@@ -1,5 +1,6 @@
 import {
   consultarVencimiento,
+  listarCategoriasSugeridas,
   generarCuotasSiguientes,
   listarGastosMensuales,
   guardarCambios,
@@ -23,6 +24,16 @@ export const getGastos = async (req, res) => {
     res.json(gastos);
   } catch (error) {
     res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const getCategoriasSugeridas = async (req, res) => {
+  try {
+    res.json(await listarCategoriasSugeridas(req.usuario.id));
+  } catch (error) {
+    res.status(500).json({
       error: error.message,
     });
   }

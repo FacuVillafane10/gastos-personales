@@ -374,6 +374,37 @@ export const guardarCambiosGastos =
 // ===================================
 
 
+// REGLAS DE IMPORTACIÓN
+// ("si la descripción empieza con ... → nombre y categoría")
+
+export const obtenerReglas = async () =>
+  await apiFetch("/reglas");
+
+export const crearRegla = async (regla) =>
+  await apiFetch("/reglas", {
+    method: "POST",
+    body: JSON.stringify(regla),
+  });
+
+export const actualizarRegla = async (id, regla) =>
+  await apiFetch(`/reglas/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(regla),
+  });
+
+export const eliminarRegla = async (id) =>
+  await apiFetch(`/reglas/${id}`, {
+    method: "DELETE",
+  });
+
+
+// CATEGORÍA USADA ÚLTIMAMENTE PARA CADA DESCRIPCIÓN
+// { "super mami": 3, ... }
+
+export const obtenerCategoriasSugeridas = async () =>
+  await apiFetch("/gastos/categorias-sugeridas");
+
+
 // OBTENER CATEGORÍAS
 
 export const obtenerCategorias =

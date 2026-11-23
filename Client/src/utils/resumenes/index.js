@@ -113,6 +113,52 @@ export const emparejarConExistentes = (movimientos, existentes) => {
   });
 };
 
+// Igual que en el servidor: mayúsculas y espacios simples.
+export const normalizarPatron = (texto) =>
+  String(texto || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toUpperCase();
+
+// Regla cuyo patrón es el comienzo de la descripción (gana la más
+// larga, o sea la más específica).
+export const buscarRegla = (descripcion, reglas) => {
+  const texto = normalizarPatron(descripcion);
+
+  return (
+    reglas
+      .filter((regla) => texto.startsWith(regla.patron))
+      .sort((a, b) => b.patron.length - a.patron.length)[0] ||
+    null
+  );
+};
+
+// Nombre y categoría automáticos. Si el movimiento reemplaza a un gasto
+// tuyo se respeta ese; si no, manda la regla; si no hay categoría, la
+// última que usaste para esa descripción.
+export const aplicarReglas = (movimientos, reglas, sugeridas) =>
+  movimientos.map((movimiento) => {
+    if (movimiento.reemplaza) return movimiento;
+
+    const regla = buscarRegla(movimiento.descripcion, reglas);
+
+    const nombreRegla = regla?.nombre || null;
+
+    const categoriaSugerida =
+      regla?.categoria_id ||
+      sugeridas[
+        normalizar(nombreRegla || movimiento.descripcion)
+      ] ||
+      null;
+
+    return {
+      ...movimiento,
+      regla: regla ? { id: regla.id, patron: regla.patron } : null,
+      nombreRegla,
+      categoriaSugerida,
+    };
+  });
+
 const dosDigitos = (numero) =>
   String(numero).padStart(2, "0");
 
@@ -149,7 +195,8 @@ export const armarGastos = ({
 
     // Si reemplaza a un gasto cargado a mano, queda con ese nombre y
     // el del resumen pasa a las observaciones.
-    const nombrePropio = movimiento.reemplaza?.descripcion;
+    const nombrePropio =
+      movimiento.reemplaza?.descripcion || movimiento.nombreRegla;
 
     const otroNombre =
       nombrePropio &&

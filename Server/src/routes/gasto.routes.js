@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import {
+  getCategoriasSugeridas,
   getGastos,
   getVencimiento,
   postCambiosGastos,
@@ -12,6 +13,11 @@ const router = Router();
 router.get("/", getGastos);
 
 router.get("/vencimiento", getVencimiento);
+
+router.get(
+  "/categorias-sugeridas",
+  getCategoriasSugeridas
+);
 
 router.post(
   "/cambios",

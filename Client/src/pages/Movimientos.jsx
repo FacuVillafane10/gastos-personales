@@ -18,6 +18,7 @@ import {
   obtenerGastosMensuales,
   obtenerOrigen,
   obtenerVencimiento,
+  obtenerCategoriasSugeridas,
 } from "../services/api";
 
 import {
@@ -108,6 +109,10 @@ const Movimientos = () => {
 
   // Vencimiento del resumen del mes ("AAAA-MM-DD" o "") y el guardado,
   // para saber si cambió.
+  // Última categoría usada para cada descripción ("super mami": 3)
+  const [sugeridas, setSugeridas] =
+    useState({});
+
   const [vencimiento, setVencimiento] =
     useState("");
 
@@ -185,6 +190,7 @@ const Movimientos = () => {
         gastosData,
         categoriasData,
         vencimientoData,
+        sugeridasData,
       ] = await Promise.all([
         obtenerOrigen(id),
 
@@ -202,7 +208,13 @@ const Movimientos = () => {
           anio,
           mes
         ).catch(() => null),
+
+        obtenerCategoriasSugeridas().catch(
+          () => ({})
+        ),
       ]);
+
+      setSugeridas(sugeridasData || {});
 
       setVencimiento(vencimientoData || "");
 
@@ -665,6 +677,37 @@ const Movimientos = () => {
 
     setMensaje("");
     setError("");
+  };
+
+  // ============================
+  // SUGERIR CATEGORÍA
+  // ============================
+
+  // Al terminar de escribir la descripción de un gasto nuevo sin
+  // categoría, se completa con la que usaste antes para esa
+  // descripción.
+  const sugerirCategoria = (gasto) => {
+    if (!gasto.esNuevo || gasto.categoriaId) return;
+
+    const categoriaId =
+      sugeridas[
+        String(gasto.descripcion || "")
+          .trim()
+          .toLowerCase()
+      ];
+
+    if (
+      categoriaId &&
+      categorias.some(
+        (categoria) => categoria.id === categoriaId
+      )
+    ) {
+      actualizarCampo(
+        gasto.id,
+        "categoriaId",
+        categoriaId
+      );
+    }
   };
 
   // ============================
@@ -1519,6 +1562,11 @@ const Movimientos = () => {
                           placeholder="Descripción"
                           data-descripcion={
                             gasto.id
+                          }
+                          onBlur={() =>
+                            sugerirCategoria(
+                              gasto
+                            )
                           }
                           onChange={(
                             event

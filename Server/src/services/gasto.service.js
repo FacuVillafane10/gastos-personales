@@ -2,6 +2,7 @@ import {
   cargarCuotasSiguientes,
   obtenerGastosMensuales,
   obtenerVencimiento,
+  obtenerCategoriasSugeridas,
   guardarCambiosGastos,
 } from "../repositories/gasto.repository.js";
 
@@ -186,6 +187,9 @@ export const generarCuotasSiguientes = async (
     periodo.mes
   );
 };
+
+export const listarCategoriasSugeridas = async (usuarioId) =>
+  await obtenerCategoriasSugeridas(usuarioId);
 
 export const consultarVencimiento = async (
   usuarioId,

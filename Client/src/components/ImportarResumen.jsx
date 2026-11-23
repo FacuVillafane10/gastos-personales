@@ -1,14 +1,23 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import CampoPassword from "./CampoPassword";
 
 import {
+  aplicarReglas,
   armarGastos,
+  buscarRegla,
   ErrorClave,
   extraerLineas,
   emparejarConExistentes,
   leerResumen,
+  normalizarPatron,
 } from "../utils/resumenes";
+
+import {
+  crearRegla,
+  obtenerCategoriasSugeridas,
+  obtenerReglas,
+} from "../services/api";
 
 import { formatearMonto } from "../utils/moneda";
 
@@ -38,7 +47,10 @@ const preparaFilas = (movimientos) =>
       movimiento.tipo
     ),
     montoCarga: Math.abs(movimiento.monto),
-    categoriaId: movimiento.reemplaza?.categoriaId || "",
+    categoriaId:
+      movimiento.reemplaza?.categoriaId ||
+      movimiento.categoriaSugerida ||
+      "",
   }));
 
 // Grupos por titular (tarjetas adicionales). Lo que no es de ningún
@@ -112,21 +124,52 @@ const ImportarResumen = ({
     () => new Set()
   );
 
+  // Reglas de nombre/categoría y categorías usadas antes.
+  const [reglas, setReglas] = useState([]);
+
+  const [sugeridas, setSugeridas] = useState({});
+
+  // Mini formulario "+ regla" abierto debajo de una fila.
+  const [reglaNueva, setReglaNueva] = useState(null);
+
+  const [errorRegla, setErrorRegla] = useState("");
+
+  const [guardandoRegla, setGuardandoRegla] =
+    useState(false);
+
+  const idsCategorias = new Set(
+    categorias.map((categoria) => categoria.id)
+  );
+
   // Las filas se arman solo con los titulares elegidos, así el
   // emparejamiento con lo ya cargado no usa movimientos ocultos.
-  const armarFilas = (leido, titularesElegidos) =>
+  const armarFilas = (
+    leido,
+    titularesElegidos,
+    reglasActuales = reglas,
+    sugeridasActuales = sugeridas
+  ) =>
     preparaFilas(
-      emparejarConExistentes(
-        leido.movimientos
-          .map((movimiento, indice) => ({
-            ...movimiento,
-            indice,
-          }))
-          .filter((movimiento) =>
-            titularesElegidos.has(claveTitular(movimiento))
-          ),
-        existentes
+      aplicarReglas(
+        emparejarConExistentes(
+          leido.movimientos
+            .map((movimiento, indice) => ({
+              ...movimiento,
+              indice,
+            }))
+            .filter((movimiento) =>
+              titularesElegidos.has(claveTitular(movimiento))
+            ),
+          existentes
+        ),
+        reglasActuales,
+        sugeridasActuales
       )
+    ).map((fila) =>
+      // solo categorías que se pueden elegir
+      idsCategorias.has(Number(fila.categoriaId))
+        ? fila
+        : { ...fila, categoriaId: "" }
     );
 
   const leerArchivo = async (event) => {
@@ -163,7 +206,24 @@ const ImportarResumen = ({
 
       setElegidos(iniciales);
 
-      setFilas(armarFilas(leido, iniciales));
+      // Si el servidor no responde, se importa igual sin automatismos.
+      const [reglasLeidas, sugeridasLeidas] = await Promise.all([
+        obtenerReglas().catch(() => []),
+        obtenerCategoriasSugeridas().catch(() => ({})),
+      ]);
+
+      setReglas(reglasLeidas);
+
+      setSugeridas(sugeridasLeidas);
+
+      setFilas(
+        armarFilas(
+          leido,
+          iniciales,
+          reglasLeidas,
+          sugeridasLeidas
+        )
+      );
 
       setConservar(new Set());
     } catch (error) {
@@ -205,6 +265,61 @@ const ImportarResumen = ({
     setElegidos(nuevos);
 
     setFilas(armarFilas(resumen, nuevos));
+
+    setReglaNueva(null);
+  };
+
+  const abrirReglaNueva = (fila) => {
+    setErrorRegla("");
+
+    setReglaNueva({
+      clave: fila.clave,
+      patron: normalizarPatron(fila.descripcion),
+      nombre: fila.nombreRegla || "",
+      categoriaId: fila.categoriaId || "",
+    });
+  };
+
+  // Guarda la regla y la aplica a las filas que coinciden (sin tocar
+  // las que reemplazan a un gasto tuyo).
+  const guardarReglaNueva = async (event) => {
+    event.preventDefault();
+
+    try {
+      setGuardandoRegla(true);
+      setErrorRegla("");
+
+      const regla = await crearRegla({
+        patron: reglaNueva.patron,
+        nombre: reglaNueva.nombre,
+        categoriaId: Number(reglaNueva.categoriaId) || null,
+      });
+
+      const nuevas = [...reglas, regla];
+
+      setReglas(nuevas);
+
+      setFilas((actuales) =>
+        actuales.map((fila) =>
+          !fila.reemplaza &&
+          buscarRegla(fila.descripcion, nuevas)?.id === regla.id
+            ? {
+                ...fila,
+                regla: { id: regla.id, patron: regla.patron },
+                nombreRegla: regla.nombre || null,
+                categoriaId:
+                  regla.categoria_id || fila.categoriaId,
+              }
+            : fila
+        )
+      );
+
+      setReglaNueva(null);
+    } catch (error) {
+      setErrorRegla(error.message);
+    } finally {
+      setGuardandoRegla(false);
+    }
   };
 
   const seleccionadas = filas.filter(
@@ -511,8 +626,9 @@ const ImportarResumen = ({
 
                   {filas.map((fila) => (
 
+                    <Fragment key={fila.clave}>
+
                     <tr
-                      key={fila.clave}
                       className={
                         fila.seleccionado ? "" : "fila-apagada"
                       }
@@ -538,8 +654,26 @@ const ImportarResumen = ({
 
                       <td className="importar-celda-descripcion">
                         <span className="importar-descripcion">
-                          {fila.descripcion}
+                          {fila.nombreRegla || fila.descripcion}
                         </span>
+
+                        {fila.nombreRegla && (
+                          <span className="importar-tipo tipo-regla">
+                            Banco: {fila.descripcion}
+                          </span>
+                        )}
+
+                        {!fila.reemplaza &&
+                          fila.tipo !== "credito" && (
+                            <button
+                              type="button"
+                              className="boton-regla"
+                              onClick={() => abrirReglaNueva(fila)}
+                              title="Que este texto del banco se cargue siempre con el nombre y la categoría que elijas"
+                            >
+                              {fila.regla ? "Regla ✓" : "+ regla"}
+                            </button>
+                          )}
 
                         {fila.reemplaza && (
                           <span className="importar-tipo tipo-cargado">
@@ -614,6 +748,120 @@ const ImportarResumen = ({
                       </td>
 
                     </tr>
+
+                    {reglaNueva?.clave === fila.clave && (
+
+                      <tr className="fila-regla">
+
+                        <td colSpan={6}>
+
+                          <form
+                            className="form-regla"
+                            onSubmit={guardarReglaNueva}
+                          >
+
+                            <label>
+                              <span>Si la descripción empieza con</span>
+
+                              <input
+                                type="text"
+                                className="campo-input"
+                                maxLength={100}
+                                value={reglaNueva.patron}
+                                onChange={(event) =>
+                                  setReglaNueva({
+                                    ...reglaNueva,
+                                    patron: event.target.value,
+                                  })
+                                }
+                              />
+                            </label>
+
+                            <label>
+                              <span>Llamarlo</span>
+
+                              <input
+                                type="text"
+                                className="campo-input"
+                                maxLength={255}
+                                placeholder="Ej: Seguro auto"
+                                value={reglaNueva.nombre}
+                                onChange={(event) =>
+                                  setReglaNueva({
+                                    ...reglaNueva,
+                                    nombre: event.target.value,
+                                  })
+                                }
+                                autoFocus
+                              />
+                            </label>
+
+                            <label>
+                              <span>Categoría</span>
+
+                              <select
+                                className="campo-input"
+                                value={reglaNueva.categoriaId}
+                                onChange={(event) =>
+                                  setReglaNueva({
+                                    ...reglaNueva,
+                                    categoriaId: event.target.value,
+                                  })
+                                }
+                              >
+                                <option value="">
+                                  Sin categoría
+                                </option>
+
+                                {categorias.map((categoria) => (
+                                  <option
+                                    key={categoria.id}
+                                    value={categoria.id}
+                                  >
+                                    {categoria.nombre}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+
+                            {errorRegla && (
+                              <p className="modal-error">
+                                {errorRegla}
+                              </p>
+                            )}
+
+                            <div className="form-regla-acciones">
+
+                              <button
+                                type="button"
+                                className="boton-cancelar"
+                                onClick={() => setReglaNueva(null)}
+                                disabled={guardandoRegla}
+                              >
+                                Cancelar
+                              </button>
+
+                              <button
+                                type="submit"
+                                className="boton-guardar"
+                                disabled={guardandoRegla}
+                              >
+                                {guardandoRegla
+                                  ? "Guardando..."
+                                  : "Guardar regla"}
+                              </button>
+
+                            </div>
+
+                          </form>
+
+                        </td>
+
+                      </tr>
+
+                    )}
+
+                    </Fragment>
 
                   ))}
 
