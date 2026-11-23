@@ -281,7 +281,7 @@ const ImportarResumen = ({
             </p>
 
             {diferenciaControl !== null && (
-              <p
+              <div
                 className={
                   Math.abs(diferenciaControl) < 1
                     ? "importar-control ok"
@@ -293,7 +293,40 @@ const ImportarResumen = ({
                   : `Lo detectado difiere del saldo del resumen en ${formatearMonto(
                       diferenciaControl
                     )}. Revisá si falta algún movimiento.`}
-              </p>
+
+                {Math.abs(diferenciaControl) >= 1 && (
+                  <details className="importar-calculo">
+                    <summary>Ver cálculo</summary>
+
+                    <span>
+                      Saldo actual:{" "}
+                      {formatearMonto(resumen.control.saldoActual)}
+                    </span>
+
+                    <span>
+                      Saldo anterior:{" "}
+                      {formatearMonto(resumen.control.saldoAnterior)}
+                    </span>
+
+                    {resumen.control.lineasPago.map((pago, indice) => (
+                      <span key={indice}>
+                        {pago.descripcion}:{" "}
+                        {formatearMonto(pago.monto)}
+                      </span>
+                    ))}
+
+                    <span>
+                      Esperado (consumos):{" "}
+                      {formatearMonto(resumen.control.esperado)}
+                    </span>
+
+                    <span>
+                      Detectado:{" "}
+                      {formatearMonto(resumen.control.detectado)}
+                    </span>
+                  </details>
+                )}
+              </div>
             )}
 
             <div className="importar-tabla-wrapper">

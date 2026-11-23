@@ -559,6 +559,25 @@
   color: var(--verde);
 }
 
+.importar-calculo {
+  margin-top: 6px;
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+}
+
+.importar-calculo summary {
+  cursor: pointer;
+}
+
+.importar-calculo span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--texto-suave);
+}
+
 .importar-tabla-wrapper {
   min-height: 0;
 
@@ -724,7 +743,7 @@
 
   .tabla-importar tr {
     display: grid;
-    grid-template-columns: 30px 1fr 1fr;
+    grid-template-columns: 30px minmax(0, 0.8fr) minmax(0, 1.2fr);
     grid-template-areas:
       "check desc desc"
       ". fecha cuota"

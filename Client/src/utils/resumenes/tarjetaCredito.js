@@ -400,6 +400,8 @@ export const leerResumenTarjeta = (lineas) => {
 
   let pagos = 0;
 
+  const lineasPago = [];
+
   for (const linea of lineas) {
     const texto = linea.texto.replace(/\s+/g, " ").trim();
 
@@ -430,7 +432,11 @@ export const leerResumenTarjeta = (lineas) => {
     if (!descripcion) continue;
 
     if (RE_PAGO.test(descripcion)) {
-      if (lectura && pesos !== null) pagos += pesos;
+      if (lectura && pesos !== null) {
+        pagos += pesos;
+
+        lineasPago.push({ descripcion, monto: pesos });
+      }
 
       continue;
     }
@@ -485,6 +491,9 @@ export const leerResumenTarjeta = (lineas) => {
     control = {
       esperado: Math.round(esperado * 100) / 100,
       detectado: Math.round(detectado * 100) / 100,
+      saldoAnterior,
+      saldoActual,
+      lineasPago,
     };
   }
 
