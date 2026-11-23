@@ -6,10 +6,15 @@ Aplicación web para llevar las finanzas personales mes a mes: gastos por tarjet
 
 > El backend corre en el plan gratuito de Render: si estuvo inactivo, la primera carga puede tardar unos 30 segundos.
 
-<!-- Agregar capturas en docs/ y descomentar:
-![Dashboard](docs/dashboard.png)
-![Movimientos en el celular](docs/movimientos-celular.png)
--->
+![Dashboard del mes](docs/dashboard.jpg)
+
+![La app en el celular: dashboard, resumen por tarjeta y movimientos](docs/celular.jpg)
+
+| ¿En qué se va la plata? y cuotas pendientes | Movimientos de una tarjeta |
+|---|---|
+| ![Gastos por categoría y cuotas pendientes](docs/graficos.jpg) | ![Movimientos con cuotas y gastos fijos](docs/movimientos.jpg) |
+
+<sub>Capturas hechas con una cuenta de demostración y datos inventados.</sub>
 
 ## Funcionalidades
 
