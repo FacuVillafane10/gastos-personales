@@ -2,6 +2,7 @@ import {
   useEffect,
   useState,
 } from "react";
+import { flushSync } from "react-dom";
 import "../styles/movimientos.css";
 import {
   useNavigate,
@@ -543,7 +544,41 @@ const Movimientos = () => {
   // AGREGAR FILA
   // ============================
 
+  // Lleva la pantalla a la fila y deja el cursor en la descripción
+  // (en el celular abre el teclado).
+  const enfocarDescripcion = (gastoId) => {
+    const campo = document.querySelector(
+      `[data-descripcion="${gastoId}"]`
+    );
+
+    if (!campo) return;
+
+    campo.focus({ preventScroll: true });
+
+    campo.scrollIntoView({
+      block: "center",
+      behavior: "smooth",
+    });
+  };
+
   const agregarFila = () => {
+    setMensaje("");
+    setError("");
+
+    // Si ya hay una fila nueva vacía, se va a esa en vez de sumar otra.
+    const vacia = gastos.find(
+      (gasto) =>
+        gasto.esNuevo &&
+        !String(gasto.descripcion || "").trim() &&
+        !Number(gasto.monto)
+    );
+
+    if (vacia) {
+      enfocarDescripcion(vacia.id);
+
+      return;
+    }
+
     const nuevaFila = {
       id: crypto.randomUUID(),
 
@@ -569,15 +604,18 @@ const Movimientos = () => {
       modificado: true,
     };
 
-    setGastos(
-      (gastosActuales) => [
-        ...gastosActuales,
-        nuevaFila,
-      ]
-    );
+    // Se dibuja la fila en el momento para poder enfocarla dentro del
+    // mismo toque (si no, el celular no abre el teclado).
+    flushSync(() => {
+      setGastos(
+        (gastosActuales) => [
+          ...gastosActuales,
+          nuevaFila,
+        ]
+      );
+    });
 
-    setMensaje("");
-    setError("");
+    enfocarDescripcion(nuevaFila.id);
   };
 
   // ============================
@@ -1479,6 +1517,9 @@ const Movimientos = () => {
                             gasto.descripcion
                           }
                           placeholder="Descripción"
+                          data-descripcion={
+                            gasto.id
+                          }
                           onChange={(
                             event
                           ) =>
