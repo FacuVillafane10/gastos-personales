@@ -1002,6 +1002,172 @@
 
 
 /* =========================
+   CAMBIO DE MES
+========================= */
+
+.boton-mes {
+  width: 30px;
+  height: 30px;
+
+  margin: 0 6px;
+  padding: 0;
+
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+
+  background: transparent;
+  color: var(--texto-suave);
+
+  font-size: 18px;
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+.boton-mes:first-child {
+  margin-left: 0;
+}
+
+.boton-mes:hover {
+  border-color: var(--azul);
+
+  color: var(--texto);
+}
+
+
+/* =========================
+   BUSCADOR Y FILTROS
+========================= */
+
+.filtros-gastos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 14px;
+}
+
+.filtros-gastos .filtro-busqueda {
+  flex: 1 1 200px;
+}
+
+.filtros-gastos .filtro-categoria {
+  width: auto;
+  min-width: 170px;
+}
+
+.chip-filtro {
+  padding: 8px 14px;
+
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 999px;
+
+  background: transparent;
+  color: var(--texto-suave);
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.chip-filtro[aria-pressed="true"] {
+  border-color: var(--azul);
+
+  background: rgba(61, 165, 255, 0.12);
+  color: var(--azul);
+}
+
+.filtros-resultado {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  color: var(--texto-tenue);
+
+  font-size: 13px;
+}
+
+.boton-limpiar-filtros {
+  padding: 0;
+
+  border: none;
+
+  background: none;
+  color: var(--azul);
+
+  font-family: inherit;
+  font-size: 13px;
+
+  text-decoration: underline;
+  text-underline-offset: 3px;
+
+  cursor: pointer;
+}
+
+
+/* =========================
+   BARRA FIJA DE CAMBIOS SIN GUARDAR
+========================= */
+
+.acciones-grilla.barra-fija {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
+
+  align-items: center;
+
+  padding: 12px 14px;
+
+  border: 1px solid rgba(34, 229, 143, 0.4);
+  border-radius: 14px;
+
+  background: var(--superficie-2);
+
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+}
+
+.barra-cambios-texto {
+  margin-right: auto;
+
+  color: var(--verde);
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .filtros-gastos .filtro-busqueda,
+  .filtros-gastos .filtro-categoria {
+    flex: 1 1 100%;
+
+    font-size: 16px;
+  }
+
+  .acciones-grilla.barra-fija {
+    bottom: 8px;
+
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .acciones-grilla.barra-fija .barra-cambios-texto {
+    width: 100%;
+
+    text-align: center;
+  }
+
+  .acciones-grilla.barra-fija button {
+    width: auto;
+
+    flex: 1;
+  }
+}
+
+
+/* =========================
    CELULAR: UNA LÍNEA POR GASTO
 ========================= */
 

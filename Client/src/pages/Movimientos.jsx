@@ -122,6 +122,79 @@ const Movimientos = () => {
 
   // Vencimiento del resumen del mes ("AAAA-MM-DD" o "") y el guardado,
   // para saber si cambió.
+  // Buscador y filtros (solo cambian lo que se ve)
+  const [busqueda, setBusqueda] =
+    useState("");
+
+  const [soloSinPagar, setSoloSinPagar] =
+    useState(false);
+
+  const [soloCuotas, setSoloCuotas] =
+    useState(false);
+
+  // "" = todas, "sin" = sin categoría, o el id
+  const [filtroCategoria, setFiltroCategoria] =
+    useState("");
+
+  const hayFiltros =
+    busqueda.trim() !== "" ||
+    soloSinPagar ||
+    soloCuotas ||
+    filtroCategoria !== "";
+
+  const limpiarFiltros = () => {
+    setBusqueda("");
+    setSoloSinPagar(false);
+    setSoloCuotas(false);
+    setFiltroCategoria("");
+  };
+
+  // Las filas nuevas siempre se ven, para no perderlas al cargar.
+  const pasaFiltros = (gasto) => {
+    if (gasto.esNuevo) return true;
+
+    const texto = busqueda.trim().toLowerCase();
+
+    if (
+      texto &&
+      !`${gasto.descripcion || ""} ${gasto.observaciones || ""}`
+        .toLowerCase()
+        .includes(texto)
+    ) {
+      return false;
+    }
+
+    if (soloSinPagar && gasto.pagado) return false;
+
+    if (
+      soloCuotas &&
+      !(
+        Number(gasto.cuotaActual) > 0 &&
+        Number(gasto.cuotasTotales) > 0
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      filtroCategoria === "sin" &&
+      gasto.categoriaId
+    ) {
+      return false;
+    }
+
+    if (
+      filtroCategoria &&
+      filtroCategoria !== "sin" &&
+      Number(gasto.categoriaId) !==
+        Number(filtroCategoria)
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
   // En el celular cada gasto se ve en una línea; estas son las filas
   // desplegadas para editar.
   const [filasAbiertas, setFilasAbiertas] =
@@ -1073,29 +1146,66 @@ const Movimientos = () => {
   const [modalSalida, setModalSalida] =
     useState(false);
 
-  const volver = () =>
-    navigate(
-      `/?anio=${anio}&mes=${mes}`
-    );
+  // A dónde se va al salir (Dashboard u otro mes de este origen).
+  const [destinoSalida, setDestinoSalida] =
+    useState(null);
 
-  const intentarVolver = () => {
+  const urlDashboard =
+    `/?anio=${anio}&mes=${mes}`;
+
+  const volver = () => {
+    setModalSalida(false);
+
+    navigate(
+      destinoSalida || urlDashboard
+    );
+  };
+
+  // Si hay cambios sin guardar, pregunta antes de irse.
+  const irA = (destino) => {
     if (hayCambios) {
+      setDestinoSalida(destino);
       setModalSalida(true);
 
       return;
     }
 
-    volver();
+    navigate(destino);
   };
+
+  const intentarVolver = () =>
+    irA(urlDashboard);
+
+  // Mes anterior (-1) o siguiente (+1) del mismo origen.
+  const cambiarMes = (desplazamiento) => {
+    const indice =
+      anio * 12 + (mes - 1) + desplazamiento;
+
+    irA(
+      `/origen/${id}?anio=${Math.floor(
+        indice / 12
+      )}&mes=${(indice % 12) + 1}`
+    );
+  };
+
+  // Cuántos cambios hay sin guardar (para la barra fija).
+  const cantidadCambios =
+    gastos.filter(
+      (gasto) => gasto.modificado
+    ).length +
+    eliminados.length +
+    (vencimiento !== vencimientoGuardado
+      ? 1
+      : 0);
 
   const guardarYSalir = async () => {
     const guardado =
       await guardarCambios();
 
-    setModalSalida(false);
-
     if (guardado) {
       volver();
+    } else {
+      setModalSalida(false);
     }
   };
 
@@ -1274,8 +1384,34 @@ const Movimientos = () => {
           </h1>
 
           <span className="movimientos-periodo">
+
+            <button
+              type="button"
+              className="boton-mes"
+              onClick={() =>
+                cambiarMes(-1)
+              }
+              aria-label="Mes anterior"
+              title="Mes anterior"
+            >
+              ‹
+            </button>
+
             {nombresMeses[mes - 1]}{" "}
             {anio}
+
+            <button
+              type="button"
+              className="boton-mes"
+              onClick={() =>
+                cambiarMes(1)
+              }
+              aria-label="Mes siguiente"
+              title="Mes siguiente"
+            >
+              ›
+            </button>
+
           </span>
 
           <label className="campo-vencimiento">
@@ -1505,6 +1641,103 @@ const Movimientos = () => {
 
           <div className="tabla-wrapper">
 
+            <div className="filtros-gastos">
+
+              <input
+                type="search"
+                className="campo-input filtro-busqueda"
+                placeholder="Buscar…"
+                aria-label="Buscar gastos"
+                value={busqueda}
+                onChange={(event) =>
+                  setBusqueda(
+                    event.target.value
+                  )
+                }
+              />
+
+              <button
+                type="button"
+                className="chip-filtro"
+                aria-pressed={soloSinPagar}
+                onClick={() =>
+                  setSoloSinPagar(
+                    (valor) => !valor
+                  )
+                }
+              >
+                Sin pagar
+              </button>
+
+              <button
+                type="button"
+                className="chip-filtro"
+                aria-pressed={soloCuotas}
+                onClick={() =>
+                  setSoloCuotas(
+                    (valor) => !valor
+                  )
+                }
+              >
+                En cuotas
+              </button>
+
+              <select
+                className="campo-input filtro-categoria"
+                aria-label="Filtrar por categoría"
+                value={filtroCategoria}
+                onChange={(event) =>
+                  setFiltroCategoria(
+                    event.target.value
+                  )
+                }
+              >
+                <option value="">
+                  Todas las categorías
+                </option>
+
+                <option value="sin">
+                  Sin categoría
+                </option>
+
+                {categorias.map(
+                  (categoria) => (
+                    <option
+                      key={categoria.id}
+                      value={categoria.id}
+                    >
+                      {categoria.nombre}
+                    </option>
+                  )
+                )}
+              </select>
+
+              {hayFiltros && (
+
+                <span className="filtros-resultado">
+                  Mostrando{" "}
+                  {
+                    gastos.filter(
+                      pasaFiltros
+                    ).length
+                  }{" "}
+                  de {gastos.length}
+
+                  <button
+                    type="button"
+                    className="boton-limpiar-filtros"
+                    onClick={
+                      limpiarFiltros
+                    }
+                  >
+                    Limpiar
+                  </button>
+                </span>
+
+              )}
+
+            </div>
+
             <table className="tabla-gastos">
 
               <thead>
@@ -1548,7 +1781,9 @@ const Movimientos = () => {
 
               <tbody>
 
-                {gastos.map(
+                {gastos
+                  .filter(pasaFiltros)
+                  .map(
                   (gasto) => (
 
                     <tr
@@ -1972,7 +2207,25 @@ const Movimientos = () => {
 
         {/* ACCIONES */}
 
-        <div className="acciones-grilla">
+        <div
+          className={
+            hayCambios
+              ? "acciones-grilla barra-fija"
+              : "acciones-grilla"
+          }
+        >
+
+          {hayCambios && (
+
+            <span className="barra-cambios-texto">
+              {cantidadCambios} cambio
+              {cantidadCambios === 1
+                ? ""
+                : "s"}{" "}
+              sin guardar
+            </span>
+
+          )}
 
           <button
             type="button"
@@ -2133,9 +2386,10 @@ const Movimientos = () => {
           guardando={guardando}
           onGuardar={guardarYSalir}
           onSalir={volver}
-          onCancelar={() =>
-            setModalSalida(false)
-          }
+          onCancelar={() => {
+            setModalSalida(false);
+            setDestinoSalida(null);
+          }}
         />
       )}
 
