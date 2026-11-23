@@ -469,6 +469,13 @@ const handleCerrarSesion = async () => {
       ? `Este mes: ${movimientosAhorroMes.join(" · ")} · Total al cierre:`
       : "Sin movimientos este mes · Total al cierre:";
 
+  // Gastos ya pagados y lo que falta pagar del mes
+  const totalPagado =
+    resumen?.totalPagado ?? 0;
+
+  const totalPendiente =
+    (resumen?.totalGeneral ?? 0) - totalPagado;
+
   const balance =
     totalIngresos -
     (resumen?.totalGeneral ?? 0) -
@@ -744,6 +751,29 @@ const handleCerrarSesion = async () => {
                   )}
                 </b>
 
+                {resumen.totalGeneral > 0 && (
+                  <>
+                    <span className="gastos-pagados">
+                      Pagado{" "}
+                      {formatearDinero(totalPagado)}
+                    </span>
+
+                    <span
+                      className={
+                        totalPendiente > 0
+                          ? "gastos-pendientes"
+                          : "gastos-pagados"
+                      }
+                    >
+                      {totalPendiente > 0
+                        ? `Falta pagar ${formatearDinero(
+                            totalPendiente
+                          )}`
+                        : "Todo pagado"}
+                    </span>
+                  </>
+                )}
+
               </div>
 
               <div>
@@ -853,8 +883,23 @@ const handleCerrarSesion = async () => {
                           {origen.nombre}
                         </span>
 
-                        <small>
-                          Ver movimientos
+                        <small
+                          className={
+                            origen.total > origen.pagado
+                              ? "origen-pendiente"
+                              : origen.total > 0
+                                ? "origen-pagado"
+                                : ""
+                          }
+                        >
+                          {origen.total > origen.pagado
+                            ? `Falta pagar ${formatearDinero(
+                                origen.total -
+                                  (origen.pagado ?? 0)
+                              )}`
+                            : origen.total > 0
+                              ? "✓ Todo pagado"
+                              : "Ver movimientos"}
                         </small>
 
                       </div>

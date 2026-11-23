@@ -157,8 +157,36 @@ const corregirUnicidad = async () => {
   }
 };
 
+// Columnas que se agregaron a tablas que ya existían.
+const COLUMNAS = [
+  {
+    // Si el gasto ya se pagó (tilde en Movimientos)
+    nombre: "gastos.pagado",
+
+    sql: `
+      ALTER TABLE gastos
+        ADD COLUMN IF NOT EXISTS pagado BOOLEAN NOT NULL DEFAULT FALSE;
+    `,
+  },
+];
+
+const agregarColumnas = async () => {
+  for (const columna of COLUMNAS) {
+    try {
+      await pool.query(columna.sql);
+    } catch (error) {
+      console.error(
+        `❌ No se pudo agregar la columna ${columna.nombre}:`,
+        error.message
+      );
+    }
+  }
+};
+
 export const ejecutarMigraciones = async () => {
   await corregirUnicidad();
+
+  await agregarColumnas();
 
   for (const tabla of TABLAS) {
     try {

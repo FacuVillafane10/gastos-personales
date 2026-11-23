@@ -204,6 +204,8 @@ const Movimientos = () => {
           cuotasTotales:
             gasto.cuotas_totales ?? "",
 
+          pagado: gasto.pagado === true,
+
           esNuevo: false,
 
           modificado: false,
@@ -432,6 +434,8 @@ const Movimientos = () => {
 
       observaciones: "",
 
+      pagado: false,
+
       esNuevo: true,
 
       modificado: true,
@@ -474,6 +478,23 @@ const Movimientos = () => {
             };
           }
         )
+    );
+
+    setMensaje("");
+    setError("");
+  };
+
+  // ============================
+  // MARCAR TODOS COMO PAGADOS
+  // ============================
+
+  const marcarTodosPagados = (pagado) => {
+    setGastos((gastosActuales) =>
+      gastosActuales.map((gasto) =>
+        gasto.pagado === pagado
+          ? gasto
+          : { ...gasto, pagado, modificado: true }
+      )
     );
 
     setMensaje("");
@@ -670,6 +691,9 @@ const Movimientos = () => {
 
               observaciones:
                 gasto.observaciones,
+
+              pagado:
+                gasto.pagado === true,
             };
           });
 
@@ -712,6 +736,9 @@ const Movimientos = () => {
 
                 observaciones:
                   gasto.observaciones,
+
+                pagado:
+                  gasto.pagado === true,
               };
             });
 
@@ -905,6 +932,17 @@ const Movimientos = () => {
       0
     );
 
+  const totalPagado = gastos
+    .filter((gasto) => gasto.pagado)
+    .reduce(
+      (acumulador, gasto) =>
+        acumulador +
+        (Number(gasto.monto) || 0),
+      0
+    );
+
+  const totalPendiente = total - totalPagado;
+
   // ============================
   // CARGANDO
   // ============================
@@ -979,6 +1017,47 @@ const Movimientos = () => {
               total
             )}
           </strong>
+
+          {gastos.length > 0 && (
+
+            <div className="movimientos-pagos">
+
+              <small className="monto-pagado">
+                Pagado{" "}
+                {formatearDinero(totalPagado)}
+              </small>
+
+              <small
+                className={
+                  totalPendiente > 0
+                    ? "monto-pendiente"
+                    : "monto-pagado"
+                }
+              >
+                {totalPendiente > 0
+                  ? `Falta pagar ${formatearDinero(
+                      totalPendiente
+                    )}`
+                  : "Todo pagado"}
+              </small>
+
+              <button
+                type="button"
+                className="boton-marcar-todos"
+                onClick={() =>
+                  marcarTodosPagados(
+                    totalPendiente > 0
+                  )
+                }
+              >
+                {totalPendiente > 0
+                  ? "Marcar todos como pagados"
+                  : "Desmarcar todos"}
+              </button>
+
+            </div>
+
+          )}
 
         </div>
 
@@ -1121,6 +1200,10 @@ const Movimientos = () => {
                     Observaciones
                   </th>
 
+                  <th>
+                    Pagado
+                  </th>
+
                   <th />
 
                 </tr>
@@ -1141,6 +1224,9 @@ const Movimientos = () => {
                           : "",
                         cuotasTerminadas(gasto)
                           ? "fila-finalizada"
+                          : "",
+                        gasto.pagado
+                          ? "fila-pagada"
                           : "",
                       ]
                         .filter(Boolean)
@@ -1376,6 +1462,41 @@ const Movimientos = () => {
                             )
                           }
                         />
+
+                      </td>
+
+
+                      {/* PAGADO */}
+
+                      <td className="celda-pagado">
+
+                        <button
+                          type="button"
+                          className="boton-pagado"
+                          aria-pressed={gasto.pagado}
+                          title={
+                            gasto.pagado
+                              ? "Pagado (tocá para desmarcar)"
+                              : "Marcar como pagado"
+                          }
+                          onClick={() =>
+                            actualizarCampo(
+                              gasto.id,
+                              "pagado",
+                              !gasto.pagado
+                            )
+                          }
+                        >
+                          <span aria-hidden="true">
+                            ✓
+                          </span>
+
+                          <span className="boton-pagado-texto">
+                            {gasto.pagado
+                              ? "Pagado"
+                              : "Sin pagar"}
+                          </span>
+                        </button>
 
                       </td>
 

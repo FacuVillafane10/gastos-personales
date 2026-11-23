@@ -138,6 +138,8 @@ return {
     cuotaActual,
     cuotasTotales,
 
+    pagado: gasto.pagado === true,
+
     observaciones: observaciones || null,
   };
 };

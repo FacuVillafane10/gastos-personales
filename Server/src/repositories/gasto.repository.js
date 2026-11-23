@@ -19,7 +19,8 @@ export const obtenerGastosMensuales = async (
         c.nombre AS categoria,
         g.observaciones,
         g.cuota_actual,
-        g.cuotas_totales
+        g.cuotas_totales,
+        g.pagado
       FROM gastos g
 
       LEFT JOIN categorias c
@@ -120,6 +121,7 @@ export const guardarCambiosGastos = async (
             monto,
             cuota_actual,
             cuotas_totales,
+            pagado,
             observaciones
           )
           VALUES (
@@ -131,7 +133,8 @@ export const guardarCambiosGastos = async (
             $6,
             $7,
             $8,
-            $9
+            $9,
+            $10
           )
 
           RETURNING
@@ -144,6 +147,7 @@ export const guardarCambiosGastos = async (
             monto,
             cuota_actual,
             cuotas_totales,
+            pagado,
             observaciones
         `,
         [
@@ -155,6 +159,7 @@ export const guardarCambiosGastos = async (
           gasto.monto,
           gasto.cuotaActual,
           gasto.cuotasTotales,
+          gasto.pagado,
           gasto.observaciones,
         ]
       );
@@ -177,12 +182,13 @@ export const guardarCambiosGastos = async (
             monto = $4,
             cuota_actual = $5,
             cuotas_totales = $6,
-            observaciones = $7,
+            pagado = $7,
+            observaciones = $8,
             actualizado_en = CURRENT_TIMESTAMP
 
-          WHERE id = $8
-            AND origen_id = $9
-            AND usuario_id = $10
+          WHERE id = $9
+            AND origen_id = $10
+            AND usuario_id = $11
 
           RETURNING
             id,
@@ -194,6 +200,7 @@ export const guardarCambiosGastos = async (
             monto,
             cuota_actual,
             cuotas_totales,
+            pagado,
             observaciones
         `,
         [
@@ -203,6 +210,7 @@ export const guardarCambiosGastos = async (
           gasto.monto,
           gasto.cuotaActual,
           gasto.cuotasTotales,
+          gasto.pagado,
           gasto.observaciones,
           gasto.id,
           origenId,

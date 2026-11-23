@@ -114,6 +114,7 @@ export const generarResumenMensual = async (
     (origen) => ({
       ...origen,
       total: Number(origen.total),
+      pagado: Number(origen.pagado),
     })
   );
 
@@ -169,6 +170,11 @@ export const generarResumenMensual = async (
       mes: mesNumero,
     },
     totalGeneral,
+    totalPagado: origenesFormateados.reduce(
+      (acumulador, origen) =>
+        acumulador + origen.pagado,
+      0
+    ),
     totalIngresos,
 
     // Disponible del mes: lo ahorrado en pesos se aparta del balance

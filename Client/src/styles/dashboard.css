@@ -689,3 +689,36 @@
   letter-spacing: 0;
   text-transform: none;
 }
+
+
+/* =========================
+   GASTOS PAGADOS / PENDIENTES
+========================= */
+
+/* más específico que ".total-card span" (las etiquetas en mayúsculas) */
+.total-card .gastos-pagados,
+.total-card .gastos-pendientes {
+  margin: 0;
+
+  font-family: var(--fuente-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.total-card .gastos-pagados {
+  color: var(--verde);
+}
+
+.total-card .gastos-pendientes {
+  color: #f5b84a;
+}
+
+.origen-card small.origen-pendiente {
+  color: #f5b84a;
+}
+
+.origen-card small.origen-pagado {
+  color: var(--verde);
+}

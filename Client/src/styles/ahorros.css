@@ -131,8 +131,8 @@
     grid-column: 1 / -1;
   }
 
-  /* en la grilla de gastos la 7.ª celda es el botón eliminar;
-     acá es "Observaciones" y el botón pasa a la 8.ª */
+  /* en la grilla de gastos la 7.ª celda es el tilde de pagado;
+     acá es "Observaciones" y el botón eliminar es la 8.ª */
   .tabla-gastos.tabla-ahorros td:nth-child(7) {
     position: static;
 

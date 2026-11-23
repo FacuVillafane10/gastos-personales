@@ -10,7 +10,11 @@ export const obtenerResumenMensual = async (
       SELECT
         o.id,
         o.nombre,
-        COALESCE(SUM(g.monto), 0) AS total
+        COALESCE(SUM(g.monto), 0) AS total,
+        COALESCE(
+          SUM(g.monto) FILTER (WHERE g.pagado),
+          0
+        ) AS pagado
       FROM origenes_gasto o
 
       LEFT JOIN gastos g
