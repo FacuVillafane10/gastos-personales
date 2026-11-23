@@ -180,8 +180,10 @@ const RE_IGNORAR =
 
 // Pagos del resumen anterior. "TRANSFERENCIA DEUDA" pasa a pesos la
 // deuda en dólares (no es un consumo nuevo).
+// En Naranja X, "Pago del resumen anterior" trae el pago, el pago en
+// dólares y las notas de crédito del período anterior.
 const RE_PAGO =
-  /SU PAGO|PAGO EN (PESOS|D[OÓ]LARES)|TRANSFERENCIA DEUDA/i;
+  /SU PAGO|PAGO EN (PESOS|D[OÓ]LARES)|PAGO VENCIMIENTO|NOTA CREDITO PESOS|TRANSFERENCIA DEUDA/i;
 
 const RE_IMPUESTO =
   /^(IVA|IMP\b|IMP\.|IMPUESTO|IMPTO|PERC|DB\b|DB\.?\s?RG|RG\s?\d|IIBB|ING\.? ?BRUTOS|INTERES|COMISI[OÓ]N|COM\.|CARGO|SEGURO|SELLOS|DERECHO|MANTENIMIENTO|SERVICIO DE|RENOVACI[OÓ]N)/i;
@@ -218,14 +220,32 @@ const leerCuota = (descripcion) => {
   };
 };
 
-const limpiarDescripcion = (texto) =>
-  texto
+// Columna "cuota/plan" de Naranja X que no es una cuota: Zeta (plan Z),
+// 01 (un pago) y Deb.Aut. (débito automático).
+const RE_PLAN_NARANJA = /\s+(Zeta|Deb\.\s?Aut\.?|01)$/i;
+
+const limpiarDescripcion = (texto) => {
+  let limpio = texto
+    .replace(/\s+/g, " ")
+    .trim()
+    // tarjeta y cupón de Naranja X ("Naranja X 8796", "NX Visa 618720")
+    .replace(/^(Naranja X|NX Visa|NX Master\w*)\s+\d+\s+/i, "")
     // número de comprobante, a veces con la marca pegada (000836*)
     .replace(/^\d{4,}[*K]?\s+/, "")
     // marcas de Visa (*, K) antes del comercio
     .replace(/^[*K]\s+/, "")
-    .replace(/\s+/g, " ")
-    .trim();
+    // cargos marcados con * en Naranja X ("*COMISION POR ...")
+    .replace(/^\*+/, "")
+    // rótulos del margen de Naranja X ("Otros cargos:")
+    .replace(/^(Otros|cargos:)(\s+|$)/i, "")
+    .replace(/^(Otros|cargos:)(\s+|$)/i, "");
+
+  while (RE_PLAN_NARANJA.test(limpio)) {
+    limpio = limpio.replace(RE_PLAN_NARANJA, "");
+  }
+
+  return limpio.trim();
+};
 
 // ============================
 // COLUMNAS PESOS / DÓLARES
@@ -238,7 +258,9 @@ const bordeDerecho = (celda) => celda.x + celda.ancho;
 // mayúsculas, como palabras sueltas. No sirve un "$ ... U$S" suelto
 // (aparece en "LA SUMA DE $ ... + U$S ..." con otras posiciones).
 const buscarColumnas = (lineas) => {
-  for (const linea of lineas) {
+  for (let i = 0; i < lineas.length; i++) {
+    const linea = lineas[i];
+
     const pesos = linea.celdas.find(
       (celda) => celda.texto.trim() === "PESOS"
     );
@@ -248,14 +270,36 @@ const buscarColumnas = (lineas) => {
     );
 
     if (pesos && dolares && dolares.x > pesos.x) {
-      return {
-        pesos: bordeDerecho(pesos),
-        dolares: bordeDerecho(dolares),
-      };
+      return (
+        calibrarConSaldoAnterior(lineas.slice(i + 1, i + 6)) || {
+          pesos: bordeDerecho(pesos),
+          dolares: bordeDerecho(dolares),
+        }
+      );
     }
   }
 
   return null;
+};
+
+// En algunos resúmenes (la Cordobesa) el encabezado no está alineado
+// con los importes. La línea "SALDO ANTERIOR" del detalle trae los dos
+// importes (pesos y dólares) en su posición real.
+const calibrarConSaldoAnterior = (lineas) => {
+  const linea = lineas.find((l) => /SALDO\s+ANTERIOR/i.test(l.texto));
+
+  if (!linea) return null;
+
+  const importes = linea.celdas.filter((celda) =>
+    RE_IMPORTE.test(celda.texto.trim())
+  );
+
+  if (importes.length < 2) return null;
+
+  return {
+    pesos: bordeDerecho(importes[importes.length - 2]),
+    dolares: bordeDerecho(importes[importes.length - 1]),
+  };
 };
 
 // Separa los importes del final de la línea y decide si son pesos o
@@ -428,22 +472,48 @@ const buscarFechaTrasEtiqueta = (lineas, etiqueta) => {
 // LECTOR
 // ============================
 
+const ultimaFecha = (movimientos) =>
+  movimientos
+    .map((movimiento) => movimiento.fechaCompra)
+    .filter(Boolean)
+    .reduce(
+      (ultima, fecha) =>
+        !ultima || comoNumero(fecha) > comoNumero(ultima)
+          ? fecha
+          : ultima,
+      null
+    );
+
 export const leerResumenTarjeta = (lineas) => {
   const textoCompleto = lineas
     .map((linea) => linea.texto)
     .join("\n");
 
-  const esVisa = /\bVISA\b/i.test(textoCompleto);
+  // Naranja X también menciona "NX Visa" en algunas líneas.
+  const esNaranja = /NARANJA/i.test(textoCompleto);
 
-  const marca = esVisa
-    ? "Visa"
-    : /MASTER/i.test(textoCompleto)
-      ? "Mastercard"
-      : "Tarjeta";
+  const esVisa = !esNaranja && /\bVISA\b/i.test(textoCompleto);
+
+  // La Cordobesa (Bancor) dice "Mastercard" solo en el logo; el número
+  // de resumen termina en "MC0102".
+  const esMaster =
+    !esNaranja &&
+    !esVisa &&
+    /MASTER|\bMC\d{4}\b/i.test(textoCompleto);
+
+  const marca = esNaranja
+    ? "Naranja X"
+    : esVisa
+      ? "Visa"
+      : esMaster
+        ? "Mastercard"
+        : "Tarjeta";
 
   const columnas = buscarColumnas(lineas);
 
-  const cierre = buscarCierre(lineas);
+  const cierreEncabezado = buscarCierre(lineas);
+
+  const cierre = cierreEncabezado;
 
   const contexto = { cierre };
 
@@ -457,8 +527,28 @@ export const leerResumenTarjeta = (lineas) => {
 
   const lineasPago = [];
 
+  // Naranja X no tiene saldo anterior/actual: se controla contra el
+  // total a pagar.
+  let totalAPagar = null;
+
+  // Línea sin importe que continúa en la siguiente (Naranja X parte en
+  // dos la nota de crédito y el IVA de "Otros cargos").
+  let pendiente = null;
+
   for (const linea of lineas) {
     const texto = linea.texto.replace(/\s+/g, " ").trim();
+
+    const anterior = pendiente;
+
+    pendiente = null;
+
+    const total = texto.match(
+      /total a pagar es \$?\s?((?:\d{1,3}(?:\.\d{3})+|\d+),\d{2})/i
+    );
+
+    if (total && totalAPagar === null) {
+      totalAPagar = parsearImporte(total[1]);
+    }
 
     if (/SALDO ANTERIOR/i.test(texto) && saldoAnterior === null) {
       saldoAnterior = primerImporte(texto);
@@ -470,19 +560,50 @@ export const leerResumenTarjeta = (lineas) => {
 
     if (RE_LEGALES.test(texto)) continue;
 
-    const lectura = leerFecha(texto, contexto, esVisa);
+    const fechaPropia = leerFecha(texto, contexto, esVisa);
 
     const { resto, pesos, dolares } = separarImportes(
       {
-        texto: lectura ? texto.slice(lectura.largo) : texto,
+        texto: fechaPropia
+          ? texto.slice(fechaPropia.largo)
+          : texto,
         celdas: linea.celdas,
       },
       columnas
     );
 
-    if (pesos === null && dolares === null) continue;
+    if (pesos === null && dolares === null) {
+      const sinImporte = limpiarDescripcion(resto);
 
-    const descripcion = limpiarDescripcion(resto);
+      // Un rótulo suelto del margen ("cargos:") no corta lo pendiente.
+      if (!sinImporte && !fechaPropia) {
+        pendiente = anterior;
+
+        continue;
+      }
+
+      // Puede continuar en la línea siguiente: una fecha sin importe
+      // o el título de un impuesto.
+      if (
+        sinImporte &&
+        (fechaPropia || RE_IMPUESTO.test(sinImporte))
+      ) {
+        pendiente = {
+          lectura: fechaPropia,
+          descripcion: sinImporte,
+        };
+      }
+
+      continue;
+    }
+
+    const continua = !fechaPropia && anterior;
+
+    const lectura = continua ? anterior.lectura : fechaPropia;
+
+    const descripcion = continua
+      ? `${anterior.descripcion} ${limpiarDescripcion(resto)}`.trim()
+      : limpiarDescripcion(resto);
 
     if (!descripcion) continue;
 
@@ -533,28 +654,39 @@ export const leerResumenTarjeta = (lineas) => {
   }
 
   // Control: lo detectado en pesos debería explicar la diferencia
-  // entre el saldo anterior (menos los pagos) y el saldo actual.
+  // entre el saldo anterior (menos los pagos) y el saldo actual. En
+  // Naranja X, tiene que dar el total a pagar.
   let control = null;
 
+  const detectado = movimientos
+    .filter((movimiento) => movimiento.moneda === "ARS")
+    .reduce((suma, movimiento) => suma + movimiento.monto, 0);
+
+  const redondear = (valor) => Math.round(valor * 100) / 100;
+
   if (saldoActual !== null && saldoAnterior !== null) {
-    const esperado = saldoActual - saldoAnterior - pagos;
-
-    const detectado = movimientos
-      .filter((movimiento) => movimiento.moneda === "ARS")
-      .reduce((suma, movimiento) => suma + movimiento.monto, 0);
-
     control = {
-      esperado: Math.round(esperado * 100) / 100,
-      detectado: Math.round(detectado * 100) / 100,
+      esperado: redondear(saldoActual - saldoAnterior - pagos),
+      detectado: redondear(detectado),
       saldoAnterior,
       saldoActual,
       lineasPago,
+    };
+  } else if (totalAPagar !== null) {
+    control = {
+      esperado: redondear(totalAPagar),
+      detectado: redondear(detectado),
+      saldoAnterior: 0,
+      saldoActual: totalAPagar,
+      lineasPago: [],
     };
   }
 
   return {
     marca,
-    cierre,
+    // Sin fecha de cierre en el encabezado (Naranja X), se usa la
+    // última fecha del detalle.
+    cierre: cierre || ultimaFecha(movimientos),
     movimientos,
     control,
   };

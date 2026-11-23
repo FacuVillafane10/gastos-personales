@@ -36,8 +36,9 @@ export const leerResumen = (lineas) => {
   }
 
   const esTarjeta =
-    /VISA|MASTER|AMERICAN EXPRESS|CABAL|NARANJA/.test(texto) &&
-    /PAGO M[IÍ]NIMO|SALDO ACTUAL|CIERRE/.test(texto);
+    /VISA|MASTER|\bMC\d{4}\b|AMERICAN EXPRESS|CABAL|NARANJA/.test(
+      texto
+    ) && /PAGO M[IÍ]NIMO|SALDO ACTUAL|CIERRE|TOTAL A PAGAR/.test(texto);
 
   if (!esTarjeta) {
     throw new Error(
