@@ -63,11 +63,13 @@ const normalizar = (texto) =>
 
 const numeroCuota = (valor) => Number(valor) || 0;
 
-// Marca los movimientos del resumen que ya están cargados en el mes:
-// mismo importe y misma cuota (aunque la descripción sea distinta, ej.
-// "Saymood" y "DLO*SAYMOOD"). Cada gasto existente se usa una sola vez
-// y se prefiere el que además tiene la misma descripción.
-export const marcarYaCargados = (movimientos, existentes) => {
+// Empareja los movimientos del resumen con los gastos que ya estaban
+// cargados en el mes: mismo importe y misma cuota (aunque la
+// descripción sea distinta, ej. "Saymood" y "DLO*SAYMOOD"). Cada gasto
+// se usa una sola vez y se prefiere el que además tiene la misma
+// descripción. El movimiento que coincide lo reemplaza, pero conserva
+// su nombre, categoría y si estaba pagado.
+export const emparejarConExistentes = (movimientos, existentes) => {
   const usados = new Set();
 
   const coincide = (movimiento, gasto) =>
@@ -100,7 +102,12 @@ export const marcarYaCargados = (movimientos, existentes) => {
 
     return {
       ...movimiento,
-      yaCargado: existente.descripcion || "(sin descripción)",
+      reemplaza: {
+        id: existente.id,
+        descripcion: existente.descripcion?.trim() || "",
+        categoriaId: existente.categoriaId || null,
+        pagado: existente.pagado === true,
+      },
     };
   });
 };
@@ -139,9 +146,23 @@ export const armarGastos = ({
       ? `Compra ${formatearFecha(movimiento.fechaCompra)}`
       : "Importado";
 
+    // Si reemplaza a un gasto cargado a mano, queda con ese nombre y
+    // el del resumen pasa a las observaciones.
+    const nombrePropio = movimiento.reemplaza?.descripcion;
+
+    const otroNombre =
+      nombrePropio &&
+      normalizar(nombrePropio) !== normalizar(movimiento.descripcion)
+        ? ` · ${movimiento.descripcion}`
+        : "";
+
     return {
       fecha: `${anio}-${dosDigitos(mes)}-${dosDigitos(dia)}`,
-      descripcion: movimiento.descripcion.slice(0, 255),
+      descripcion: (nombrePropio || movimiento.descripcion).slice(
+        0,
+        255
+      ),
+      pagado: movimiento.reemplaza?.pagado === true,
       categoriaId: movimiento.categoriaId || null,
       cuotaActual: movimiento.cuotaActual ?? "",
       cuotasTotales: movimiento.cuotasTotales ?? "",
@@ -151,6 +172,7 @@ export const armarGastos = ({
       observaciones:
         compra +
         resumen +
+        otroNombre +
         (movimiento.moneda === "USD"
           ? ` · consumo de US$ ${movimiento.monto}`
           : ""),

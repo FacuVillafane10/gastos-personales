@@ -293,15 +293,29 @@ const Movimientos = () => {
   const [modalImportar, setModalImportar] =
     useState(false);
 
-  // Lo que ya estaba cargado se detecta en la vista previa (queda sin
-  // marcar), así que lo importado se agrega siempre como filas nuevas.
-  const handleImportarResumen = (nuevos) => {
+  // El resumen reemplaza lo cargado en el mes: se quitan los gastos
+  // elegidos para borrar (los guardados se eliminan al guardar) y se
+  // agregan los del PDF como filas nuevas.
+  const handleImportarResumen = (nuevos, idsABorrar) => {
+    const borrar = new Set(idsABorrar);
+
+    setEliminados((eliminadosActuales) => [
+      ...eliminadosActuales,
+      ...gastos
+        .filter(
+          (gasto) =>
+            borrar.has(gasto.id) && !gasto.esNuevo
+        )
+        .map((gasto) => gasto.id),
+    ]);
+
     setGastos((gastosActuales) => [
-      ...gastosActuales,
+      ...gastosActuales.filter(
+        (gasto) => !borrar.has(gasto.id)
+      ),
       ...nuevos.map((gasto) => ({
         id: crypto.randomUUID(),
         ...gasto,
-        pagado: false,
         esNuevo: true,
         modificado: true,
       })),
@@ -312,7 +326,11 @@ const Movimientos = () => {
     setMensaje(
       `Se importaron ${nuevos.length} gasto${
         nuevos.length === 1 ? "" : "s"
-      } del resumen. Revisalos y tocá "Guardar cambios".`
+      } del resumen${
+        borrar.size > 0
+          ? ` y se van a borrar ${borrar.size} de los que estaban cargados`
+          : ""
+      }. Revisalos y tocá "Guardar cambios".`
     );
 
     setModalImportar(false);

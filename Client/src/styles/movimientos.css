@@ -722,6 +722,65 @@
   color: var(--verde);
 }
 
+.importar-borrar {
+  margin-top: 12px;
+
+  padding: 10px 12px;
+
+  border: 1px solid rgba(255, 107, 122, 0.3);
+  border-radius: 9px;
+
+  background: var(--peligro-fondo);
+
+  font-size: 13px;
+}
+
+.importar-borrar summary {
+  color: var(--peligro);
+
+  cursor: pointer;
+}
+
+.importar-borrar ul {
+  max-height: 180px;
+
+  margin: 10px 0 0;
+  padding: 0;
+
+  overflow: auto;
+
+  list-style: none;
+}
+
+.importar-borrar li {
+  padding: 5px 0;
+}
+
+.importar-borrar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: var(--texto-suave);
+
+  cursor: pointer;
+}
+
+.importar-borrar input {
+  width: 16px;
+  height: 16px;
+
+  accent-color: var(--verde);
+}
+
+.importar-borrar small {
+  display: block;
+
+  margin-left: 24px;
+
+  color: var(--texto-tenue);
+}
+
 .importar-acciones {
   flex-wrap: wrap;
   align-items: center;

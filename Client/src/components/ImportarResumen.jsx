@@ -6,8 +6,8 @@ import {
   armarGastos,
   ErrorClave,
   extraerLineas,
+  emparejarConExistentes,
   leerResumen,
-  marcarYaCargados,
 } from "../utils/resumenes";
 
 import { formatearMonto } from "../utils/moneda";
@@ -28,17 +28,17 @@ const formatearFecha = (fecha) =>
     : "—";
 
 // Los créditos (devoluciones, bonificaciones) no se pueden cargar como
-// gasto; los consumos en dólares y los que ya están cargados en el mes
-// quedan sin marcar para revisarlos.
+// gasto; los consumos en dólares quedan sin marcar para revisarlos. Si
+// el movimiento reemplaza a un gasto cargado a mano, toma su categoría.
 const preparaFilas = (movimientos) =>
   movimientos.map((movimiento, indice) => ({
     ...movimiento,
     clave: indice,
-    seleccionado:
-      !movimiento.yaCargado &&
-      ["consumo", "cuota", "impuesto"].includes(movimiento.tipo),
+    seleccionado: ["consumo", "cuota", "impuesto"].includes(
+      movimiento.tipo
+    ),
     montoCarga: Math.abs(movimiento.monto),
-    categoriaId: "",
+    categoriaId: movimiento.reemplaza?.categoriaId || "",
   }));
 
 const ImportarResumen = ({
@@ -64,6 +64,12 @@ const ImportarResumen = ({
 
   const [filas, setFilas] = useState([]);
 
+  // El PDF reemplaza lo cargado en el mes: se borran los gastos que ya
+  // había, salvo los que se marquen para conservar.
+  const [conservar, setConservar] = useState(
+    () => new Set()
+  );
+
   const leerArchivo = async (event) => {
     event.preventDefault();
 
@@ -85,9 +91,11 @@ const ImportarResumen = ({
 
       setFilas(
         preparaFilas(
-          marcarYaCargados(leido.movimientos, existentes)
+          emparejarConExistentes(leido.movimientos, existentes)
         )
       );
+
+      setConservar(new Set());
     } catch (error) {
       if (error instanceof ErrorClave) {
         setPideClave(true);
@@ -115,6 +123,27 @@ const ImportarResumen = ({
     (suma, fila) => suma + (Number(fila.montoCarga) || 0),
     0
   );
+
+  const reemplazadoPor = new Map(
+    filas
+      .filter((fila) => fila.reemplaza)
+      .map((fila) => [fila.reemplaza.id, fila])
+  );
+
+  const idsABorrar = existentes
+    .filter((gasto) => !conservar.has(gasto.id))
+    .map((gasto) => gasto.id);
+
+  const cambiarConservar = (id, valor) => {
+    setConservar((actual) => {
+      const nuevo = new Set(actual);
+
+      if (valor) nuevo.add(id);
+      else nuevo.delete(id);
+
+      return nuevo;
+    });
+  };
 
   const diferenciaControl = resumen?.control
     ? Math.round(
@@ -146,7 +175,8 @@ const ImportarResumen = ({
         cierre: resumen.cierre,
         anio,
         mes,
-      })
+      }),
+      idsABorrar
     );
   };
 
@@ -281,11 +311,12 @@ const ImportarResumen = ({
           <>
 
             <p className="modal-ayuda">
-              Marcá los movimientos que querés cargar. Quedan
-              sin marcar los que ya tenés cargados este mes
-              (mismo importe y cuota) y los consumos en dólares:
-              si los cargás, poné el importe en pesos. La fecha
-              de compra queda en las observaciones.
+              Marcá los movimientos que querés cargar. El
+              resumen reemplaza lo cargado este mes: si un gasto
+              tuyo coincide (mismo importe y cuota), se mantiene
+              su nombre y categoría. Los consumos en dólares
+              quedan sin marcar: si los cargás, poné el importe
+              en pesos.
             </p>
 
             {diferenciaControl !== null && (
@@ -386,9 +417,9 @@ const ImportarResumen = ({
                           {fila.descripcion}
                         </span>
 
-                        {fila.yaCargado && (
+                        {fila.reemplaza && (
                           <span className="importar-tipo tipo-cargado">
-                            Ya cargado: {fila.yaCargado}
+                            Reemplaza a: {fila.reemplaza.descripcion}
                           </span>
                         )}
 
@@ -468,6 +499,60 @@ const ImportarResumen = ({
 
             </div>
 
+            {existentes.length > 0 && (
+
+              <details className="importar-borrar">
+
+                <summary>
+                  Se borran {idsABorrar.length} de los{" "}
+                  {existentes.length} gastos cargados en{" "}
+                  {nombreMes} (tocá para elegir cuáles conservar)
+                </summary>
+
+                <ul>
+                  {existentes.map((gasto) => {
+                    const fila = reemplazadoPor.get(gasto.id);
+
+                    return (
+                      <li key={gasto.id}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={conservar.has(gasto.id)}
+                            onChange={(event) =>
+                              cambiarConservar(
+                                gasto.id,
+                                event.target.checked
+                              )
+                            }
+                          />
+
+                          <span>
+                            Conservar{" "}
+                            <b>
+                              {gasto.descripcion ||
+                                "(sin descripción)"}
+                            </b>{" "}
+                            {formatearMonto(
+                              Number(gasto.monto) || 0
+                            )}
+                          </span>
+                        </label>
+
+                        {fila && fila.seleccionado && (
+                          <small>
+                            Lo reemplaza {fila.descripcion}
+                          </small>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+
+              </details>
+
+            )}
+
             {error && (
               <p className="modal-error">
                 {error}
@@ -480,6 +565,8 @@ const ImportarResumen = ({
                 {seleccionadas.length} seleccionado
                 {seleccionadas.length === 1 ? "" : "s"} ·{" "}
                 {formatearMonto(totalSeleccionado)}
+                {idsABorrar.length > 0 &&
+                  ` · se borran ${idsABorrar.length}`}
               </span>
 
               <button
