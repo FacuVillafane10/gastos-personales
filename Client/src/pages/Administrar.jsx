@@ -11,17 +11,24 @@ import {
 
 import "../styles/administrar.css";
 
+import CampoImporte from "../components/CampoImporte";
+
+import { formatearMonto } from "../utils/moneda";
+
 import {
   actualizarCategoria,
+  actualizarGastoFijo,
   actualizarOrigen,
   actualizarRegla,
   crearCategoria,
   crearOrigen,
   crearRegla,
   eliminarCategoria,
+  eliminarGastoFijo,
   eliminarOrigen,
   eliminarRegla,
   obtenerCategorias,
+  obtenerGastosFijos,
   obtenerOrigenes,
   obtenerReglas,
 } from "../services/api";
@@ -398,6 +405,276 @@ const FormRegla = ({
 
 // "Si la descripción del banco empieza con ... → nombre y categoría".
 // Se aplican al importar resúmenes.
+// Gastos que se cargan solos cada mes. Se marcan desde Movimientos
+// ("Fijo"); acá se edita el importe/día, se pausan o se borran.
+const SeccionFijos = ({ fijos, onCambio }) => {
+  const [editando, setEditando] = useState(null);
+
+  const [borrandoId, setBorrandoId] = useState(null);
+
+  const [ocupadoId, setOcupadoId] = useState(null);
+
+  const [error, setError] = useState("");
+
+  const ejecutar = async (id, accion) => {
+    try {
+      setOcupadoId(id);
+      setError("");
+
+      await accion();
+
+      await onCambio();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setOcupadoId(null);
+    }
+  };
+
+  const guardarEdicion = (event) => {
+    event.preventDefault();
+
+    ejecutar(editando.id, async () => {
+      await actualizarGastoFijo(editando.id, {
+        descripcion: editando.descripcion,
+        monto: Number(editando.monto),
+        dia: Number(editando.dia),
+      });
+
+      setEditando(null);
+    });
+  };
+
+  return (
+    <section className="admin-card admin-reglas">
+
+      <div className="admin-encabezado">
+
+        <h2>Gastos fijos</h2>
+
+        <p>
+          Se cargan solos en cada mes al abrirlo, con el importe del
+          último mes. Para agregar uno, tocá “Fijo” en el gasto desde
+          Movimientos. Si lo eliminás deja de repetirse, pero los gastos
+          ya cargados quedan.
+        </p>
+
+      </div>
+
+      {error && (
+        <p className="modal-error">{error}</p>
+      )}
+
+      {fijos.length === 0 ? (
+
+        <p className="sin-datos">
+          Todavía no hay ninguno.
+        </p>
+
+      ) : (
+
+        <ul className="admin-lista">
+
+          {fijos.map((fijo) => (
+
+            <li key={fijo.id}>
+
+              {editando?.id === fijo.id ? (
+
+                <form
+                  className="form-fijo"
+                  onSubmit={guardarEdicion}
+                >
+
+                  <label>
+                    <span>Descripción</span>
+
+                    <input
+                      type="text"
+                      className="campo-input"
+                      maxLength={255}
+                      value={editando.descripcion}
+                      onChange={(event) =>
+                        setEditando({
+                          ...editando,
+                          descripcion: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Importe</span>
+
+                    <CampoImporte
+                      className="campo-input"
+                      value={editando.monto}
+                      onChange={(valor) =>
+                        setEditando({
+                          ...editando,
+                          monto: valor,
+                        })
+                      }
+                    />
+                  </label>
+
+                  <label>
+                    <span>Día del mes</span>
+
+                    <input
+                      type="number"
+                      className="campo-input"
+                      min="1"
+                      max="31"
+                      inputMode="numeric"
+                      value={editando.dia}
+                      onChange={(event) =>
+                        setEditando({
+                          ...editando,
+                          dia: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+
+                  <div className="admin-botones">
+
+                    <button
+                      type="button"
+                      className="boton-cancelar"
+                      onClick={() => setEditando(null)}
+                      disabled={ocupadoId === fijo.id}
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="submit"
+                      className="boton-guardar"
+                      disabled={ocupadoId === fijo.id}
+                    >
+                      {ocupadoId === fijo.id
+                        ? "Guardando..."
+                        : "Guardar"}
+                    </button>
+
+                  </div>
+
+                </form>
+
+              ) : (
+
+                <div className="admin-fila">
+
+                  <span className="admin-nombre fijo-texto">
+
+                    <b>{fijo.descripcion}</b>
+
+                    {!fijo.activo && (
+                      <span className="fijo-pausado">
+                        Pausado
+                      </span>
+                    )}
+
+                    <small>
+                      {fijo.origen} · día {fijo.dia} ·{" "}
+                      {formatearMonto(fijo.monto)}
+                      {fijo.categoria && ` · ${fijo.categoria}`}
+                    </small>
+
+                  </span>
+
+                  <div className="admin-botones">
+
+                    {borrandoId === fijo.id ? (
+
+                      <>
+                        <button
+                          type="button"
+                          className="boton-secundario"
+                          onClick={() => setBorrandoId(null)}
+                        >
+                          No
+                        </button>
+
+                        <button
+                          type="button"
+                          className="boton-secundario boton-eliminar-item"
+                          disabled={ocupadoId === fijo.id}
+                          onClick={() =>
+                            ejecutar(fijo.id, async () => {
+                              await eliminarGastoFijo(fijo.id);
+                              setBorrandoId(null);
+                            })
+                          }
+                        >
+                          Sí, que no se repita
+                        </button>
+                      </>
+
+                    ) : (
+
+                      <>
+                        <button
+                          type="button"
+                          className="boton-secundario"
+                          onClick={() => {
+                            setBorrandoId(null);
+                            setEditando({
+                              id: fijo.id,
+                              descripcion: fijo.descripcion,
+                              monto: fijo.monto,
+                              dia: fijo.dia,
+                            });
+                          }}
+                        >
+                          Editar
+                        </button>
+
+                        <button
+                          type="button"
+                          className="boton-secundario"
+                          disabled={ocupadoId === fijo.id}
+                          onClick={() =>
+                            ejecutar(fijo.id, () =>
+                              actualizarGastoFijo(fijo.id, {
+                                activo: !fijo.activo,
+                              })
+                            )
+                          }
+                        >
+                          {fijo.activo ? "Pausar" : "Reanudar"}
+                        </button>
+
+                        <button
+                          type="button"
+                          className="boton-secundario boton-eliminar-item"
+                          onClick={() => setBorrandoId(fijo.id)}
+                        >
+                          Eliminar
+                        </button>
+                      </>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+              )}
+
+            </li>
+
+          ))}
+
+        </ul>
+
+      )}
+
+    </section>
+  );
+};
+
 const SeccionReglas = ({ reglas, categorias, onCambio }) => {
   const [editandoId, setEditandoId] = useState(null);
 
@@ -568,6 +845,8 @@ const Administrar = () => {
 
   const [reglas, setReglas] = useState([]);
 
+  const [fijos, setFijos] = useState([]);
+
   const [cargando, setCargando] = useState(true);
 
   const [error, setError] = useState("");
@@ -590,14 +869,18 @@ const Administrar = () => {
         listaOrigenes,
         listaCategorias,
         listaReglas,
+        listaFijos,
       ] = await Promise.all([
         obtenerOrigenes(),
         obtenerCategorias(),
-        // si el servidor aún no tiene reglas, no se rompe la página
+        // si el servidor aún no los tiene, no se rompe la página
         obtenerReglas().catch(() => []),
+        obtenerGastosFijos().catch(() => []),
       ]);
 
       setReglas(listaReglas);
+
+      setFijos(listaFijos);
 
       setOrigenes(ordenarPorNombre(listaOrigenes));
 
@@ -732,6 +1015,11 @@ const Administrar = () => {
         />
 
       </div>
+
+      <SeccionFijos
+        fijos={fijos}
+        onCambio={cargar}
+      />
 
       <SeccionReglas
         reglas={reglas}

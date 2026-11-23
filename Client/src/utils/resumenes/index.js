@@ -108,6 +108,7 @@ export const emparejarConExistentes = (movimientos, existentes) => {
         descripcion: existente.descripcion?.trim() || "",
         categoriaId: existente.categoriaId || null,
         pagado: existente.pagado === true,
+        gastoFijoId: existente.gastoFijoId || null,
       },
     };
   });
@@ -211,6 +212,9 @@ export const armarGastos = ({
         255
       ),
       pagado: movimiento.reemplaza?.pagado === true,
+      // si reemplaza a un gasto fijo, sigue siéndolo
+      gastoFijoId: movimiento.reemplaza?.gastoFijoId || null,
+      fijo: Boolean(movimiento.reemplaza?.gastoFijoId),
       categoriaId: movimiento.categoriaId || null,
       cuotaActual: movimiento.cuotaActual ?? "",
       cuotasTotales: movimiento.cuotasTotales ?? "",

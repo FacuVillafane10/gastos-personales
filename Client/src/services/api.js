@@ -398,6 +398,23 @@ export const eliminarRegla = async (id) =>
   });
 
 
+// GASTOS FIJOS (se cargan solos cada mes)
+
+export const obtenerGastosFijos = async () =>
+  await apiFetch("/gastos-fijos");
+
+export const actualizarGastoFijo = async (id, datos) =>
+  await apiFetch(`/gastos-fijos/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(datos),
+  });
+
+export const eliminarGastoFijo = async (id) =>
+  await apiFetch(`/gastos-fijos/${id}`, {
+    method: "DELETE",
+  });
+
+
 // CATEGORÍA USADA ÚLTIMAMENTE PARA CADA DESCRIPCIÓN
 // { "super mami": 3, ... }
 

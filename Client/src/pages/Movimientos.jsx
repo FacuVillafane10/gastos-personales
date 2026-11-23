@@ -362,6 +362,13 @@ const Movimientos = () => {
 
           pagado: gasto.pagado === true,
 
+          gastoFijoId:
+            gasto.gasto_fijo_id || null,
+
+          fijo: Boolean(
+            gasto.gasto_fijo_id
+          ),
+
           esNuevo: false,
 
           modificado: false,
@@ -726,6 +733,8 @@ const Movimientos = () => {
 
       pagado: false,
 
+      fijo: false,
+
       esNuevo: true,
 
       modificado: true,
@@ -1020,6 +1029,12 @@ const Movimientos = () => {
 
               pagado:
                 gasto.pagado === true,
+
+              fijo:
+                gasto.fijo === true,
+
+              gastoFijoId:
+                gasto.gastoFijoId || null,
             };
           });
 
@@ -1065,6 +1080,9 @@ const Movimientos = () => {
 
                 pagado:
                   gasto.pagado === true,
+
+                fijo:
+                  gasto.fijo === true,
               };
             });
 
@@ -2078,9 +2096,37 @@ const Movimientos = () => {
                       </td>
 
 
-                      {/* ELIMINAR */}
+                      {/* FIJO + ELIMINAR */}
 
-                      <td>
+                      <td className="celda-acciones">
+
+                        {!(
+                          Number(gasto.cuotaActual) > 0
+                        ) && (
+
+                          <button
+                            type="button"
+                            className="boton-fijo"
+                            aria-pressed={
+                              gasto.fijo === true
+                            }
+                            onClick={() =>
+                              actualizarCampo(
+                                gasto.id,
+                                "fijo",
+                                !gasto.fijo
+                              )
+                            }
+                            title={
+                              gasto.fijo
+                                ? "Se carga solo todos los meses (tocá para que deje de repetirse)"
+                                : "Repetir todos los meses"
+                            }
+                          >
+                            Fijo
+                          </button>
+
+                        )}
 
                         <button
                           type="button"
@@ -2155,6 +2201,9 @@ const Movimientos = () => {
                               gasto.cuotaActual &&
                               gasto.cuotasTotales
                                 ? `Cuota ${gasto.cuotaActual}/${gasto.cuotasTotales}`
+                                : "",
+                              gasto.fijo
+                                ? "Fijo"
                                 : "",
                             ]
                               .filter(Boolean)

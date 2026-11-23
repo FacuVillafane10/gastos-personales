@@ -14,6 +14,7 @@ import categoriaRoutes from "./routes/categoria.routes.js";
 import ingresoRoutes from "./routes/ingreso.routes.js";
 import ahorroRoutes from "./routes/ahorro.routes.js";
 import reglaRoutes from "./routes/regla.routes.js";
+import gastoFijoRoutes from "./routes/gastoFijo.routes.js";
 import { ejecutarMigraciones } from "./database/migraciones.js";
 
 import {
@@ -96,6 +97,12 @@ app.use(
   "/api/reglas",
   requerirAutenticacion,
   reglaRoutes
+);
+
+app.use(
+  "/api/gastos-fijos",
+  requerirAutenticacion,
+  gastoFijoRoutes
 );
 
 

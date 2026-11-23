@@ -1,4 +1,9 @@
 import pool from "../database/db.js";
+import {
+  actualizarDesdeGasto,
+  quitarFijo,
+  vincularFijo,
+} from "./gastoFijo.repository.js";
 
 export const obtenerGastosMensuales = async (
   usuarioId,
@@ -20,7 +25,8 @@ export const obtenerGastosMensuales = async (
         g.observaciones,
         g.cuota_actual,
         g.cuotas_totales,
-        g.pagado
+        g.pagado,
+        g.gasto_fijo_id
       FROM gastos g
 
       LEFT JOIN categorias c
@@ -469,6 +475,17 @@ export const guardarCambiosGastos = async (
       );
 
       creados.push(rows[0]);
+
+      // Gasto fijo: se vincula a su plantilla (o se crea una)
+      if (gasto.fijo || gasto.gastoFijoId) {
+        await vincularFijo(
+          client,
+          usuarioId,
+          origenId,
+          { ...gasto, id: rows[0].id },
+          gasto.gastoFijoId
+        );
+      }
     }
 
     const cuotasFuturas = await crearCuotasFuturas(
@@ -512,7 +529,8 @@ export const guardarCambiosGastos = async (
             cuota_actual,
             cuotas_totales,
             pagado,
-            observaciones
+            observaciones,
+            gasto_fijo_id
         `,
         [
           gasto.categoriaId,
@@ -536,6 +554,22 @@ export const guardarCambiosGastos = async (
       }
 
       actualizados.push(rows[0]);
+
+      // fijo: null = no cambia (clientes viejos no lo mandan)
+      const vinculado = rows[0].gasto_fijo_id;
+
+      if (gasto.fijo === true && !vinculado) {
+        await vincularFijo(
+          client,
+          usuarioId,
+          origenId,
+          gasto
+        );
+      } else if (gasto.fijo === false && vinculado) {
+        await quitarFijo(client, usuarioId, vinculado);
+      } else if (vinculado) {
+        await actualizarDesdeGasto(client, vinculado, gasto);
+      }
     }
 
     // ============================

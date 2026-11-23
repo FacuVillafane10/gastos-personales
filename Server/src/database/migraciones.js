@@ -38,6 +38,46 @@ const TABLAS = [
   },
 
   {
+    // Gastos que se repiten todos los meses (plantilla).
+    nombre: "gastos_fijos",
+
+    sql: (conClaveForanea) => `
+      CREATE TABLE IF NOT EXISTS gastos_fijos (
+        id           SERIAL PRIMARY KEY,
+        usuario_id   INTEGER NOT NULL ${claveUsuario(conClaveForanea)},
+        origen_id    INTEGER NOT NULL ${claveOrigen(conClaveForanea)},
+        descripcion  VARCHAR(255) NOT NULL,
+        monto        NUMERIC(14,2) NOT NULL,
+        categoria_id INTEGER ${claveCategoria(conClaveForanea)},
+        dia          SMALLINT NOT NULL CHECK (dia BETWEEN 1 AND 31),
+        desde_anio   INTEGER NOT NULL,
+        desde_mes    INTEGER NOT NULL CHECK (desde_mes BETWEEN 1 AND 12),
+        activo       BOOLEAN NOT NULL DEFAULT TRUE,
+        referencia   DATE,
+        creado_en    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `,
+  },
+
+  {
+    // Meses en los que ya se cargó cada fijo (aunque después se borre).
+    nombre: "gastos_fijos_generados",
+
+    sql: (conClaveForanea) => `
+      CREATE TABLE IF NOT EXISTS gastos_fijos_generados (
+        gasto_fijo_id INTEGER NOT NULL ${
+          conClaveForanea
+            ? "REFERENCES gastos_fijos(id) ON DELETE CASCADE"
+            : ""
+        },
+        anio          INTEGER NOT NULL,
+        mes           INTEGER NOT NULL,
+        PRIMARY KEY (gasto_fijo_id, anio, mes)
+      );
+    `,
+  },
+
+  {
     // "Si la descripción del banco empieza con PATRON → nombre y
     // categoría" (se aplica al importar resúmenes).
     nombre: "reglas_descripcion",
@@ -214,6 +254,17 @@ const COLUMNAS = [
         ADD COLUMN IF NOT EXISTS pagado BOOLEAN NOT NULL DEFAULT FALSE;
     `,
   },
+
+  {
+    // Gasto fijo del que salió (o que lo repite)
+    nombre: "gastos.gasto_fijo_id",
+
+    sql: `
+      ALTER TABLE gastos
+        ADD COLUMN IF NOT EXISTS gasto_fijo_id INTEGER
+        REFERENCES gastos_fijos(id) ON DELETE SET NULL;
+    `,
+  },
 ];
 
 const agregarColumnas = async () => {
@@ -231,8 +282,6 @@ const agregarColumnas = async () => {
 
 export const ejecutarMigraciones = async () => {
   await corregirUnicidad();
-
-  await agregarColumnas();
 
   for (const tabla of TABLAS) {
     try {
@@ -253,4 +302,7 @@ export const ejecutarMigraciones = async () => {
       }
     }
   }
+
+  // Después de las tablas: algunas columnas apuntan a tablas nuevas.
+  await agregarColumnas();
 };

@@ -5,6 +5,7 @@ import {
   obtenerCategoriasSugeridas,
   guardarCambiosGastos,
 } from "../repositories/gasto.repository.js";
+import { generarFijos } from "../repositories/gastoFijo.repository.js";
 
 const validarOrigenId = (origenId) => {
   const id = Number(origenId);
@@ -143,6 +144,21 @@ return {
 
     pagado: gasto.pagado === true,
 
+    // Se repite todos los meses (no aplica a compras en cuotas).
+    // null = no cambia.
+    fijo:
+      cuotaActual !== null || typeof gasto.fijo !== "boolean"
+        ? null
+        : gasto.fijo,
+
+    // Plantilla a la que pertenece (ej. al reemplazarlo con el resumen)
+    gastoFijoId:
+      cuotaActual === null &&
+      Number.isInteger(Number(gasto.gastoFijoId)) &&
+      Number(gasto.gastoFijoId) > 0
+        ? Number(gasto.gastoFijoId)
+        : null,
+
     observaciones: observaciones || null,
   };
 };
@@ -156,6 +172,14 @@ export const listarGastosMensuales = async (
   const id = validarOrigenId(origenId);
 
   const periodo = validarPeriodo(anio, mes);
+
+  // Al abrir el mes se cargan los gastos fijos que falten.
+  await generarFijos(
+    usuarioId,
+    periodo.anio,
+    periodo.mes,
+    id
+  );
 
   const gastos = await obtenerGastosMensuales(
     usuarioId,

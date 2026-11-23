@@ -6,6 +6,7 @@ import {
 } from "../repositories/resumen.repository.js";
 import { obtenerTotalIngresos } from "../repositories/ingreso.repository.js";
 import { obtenerTotalesAhorro } from "../repositories/ahorro.repository.js";
+import { generarFijos } from "../repositories/gastoFijo.repository.js";
 
 const sumarMeses = (anio, mes, cantidad) => {
   const indice = anio * 12 + (mes - 1) + cantidad;
@@ -103,6 +104,9 @@ export const generarResumenMensual = async (
   ) {
     throw new Error("El mes es inválido");
   }
+
+  // Al abrir el mes se cargan los gastos fijos que falten.
+  await generarFijos(usuarioId, anioNumero, mesNumero);
 
   const origenes = await obtenerResumenMensual(
     usuarioId,
